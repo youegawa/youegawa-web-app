@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS details (
   category_id    INT          NOT NULL,
   expense_date   DATE         NOT NULL,
   amount         INT          NOT NULL,
+  description    VARCHAR(255) NOT NULL,
   PRIMARY KEY (detail_id),
   FOREIGN KEY (user_id)     REFERENCES users(user_id),
   FOREIGN KEY (category_id) REFERENCES categories(category_id)
@@ -39,6 +40,7 @@ INSERT INTO categories (category_name) VALUES
   ('食費');
 
 -- details テーブル
-INSERT INTO details (user_id, category_id, expense_date, amount) VALUES
-  (1, 1, '2026-03-19', 1000);
+INSERT INTO details (user_id, category_id, expense_date, amount, description) VALUES
+  (1, 1, '2026-03-19', 1000,'朝食'),
+  (1, 1, '2026-03-19', 1000,'昼食');
 
