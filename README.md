@@ -197,6 +197,35 @@ npx cdk destroy --all
 
 ---
 
+## データベース設計
+
+本アプリケーションのデータベース構造（ER図）です。
+
+```mermaid
+erDiagram
+    users ||--o{ details : "1対多"
+    categories ||--o{ details : "1対多"
+
+    users {
+        int user_id PK "ユーザーID"
+        string user_name "ユーザー名"
+        int monthly_budget "月間予算"
+    }
+    categories {
+        int category_id PK "カテゴリID"
+        string category_name "カテゴリ名"
+    }
+    details {
+        int detail_id PK "明細ID"
+        int user_id FK "ユーザーID"
+        int category_id FK "カテゴリID"
+        date expense_date "支出日"
+        int amount "金額"
+        string description "備考（朝食、昼食など）"
+    }
+```    
+---
+
 ## ディレクトリ構成
 
 ```
