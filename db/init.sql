@@ -6,6 +6,7 @@ SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS users (
   user_id        INT          NOT NULL AUTO_INCREMENT,
   user_name      VARCHAR(255) NOT NULL,
+  user_password  VARCHAR(255) NOT NULL,   
   monthly_budget INT          NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -32,8 +33,8 @@ CREATE TABLE IF NOT EXISTS details (
 
 -- 各種テーブルの初期値設定
 -- users テーブル
-INSERT INTO users (user_name, monthly_budget) VALUES
-  ('あいうえお', 100000);
+INSERT INTO users (user_name, user_password, monthly_budget) VALUES
+  ('鈴木太郎', 'Pass1234', 100000);
 
 -- categories テーブル
 INSERT INTO categories (category_name) VALUES
