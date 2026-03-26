@@ -209,7 +209,7 @@ erDiagram
     users {
         int user_id PK "ユーザーID"
         string user_name "ユーザー名"
-        string user_password "ユーザパスワード"
+        string user_password "ユーザーパスワード"
         int monthly_budget "月間予算"
     }
     categories {
