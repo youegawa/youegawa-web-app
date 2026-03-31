@@ -14,8 +14,10 @@ CREATE TABLE IF NOT EXISTS users (
 -- categories テーブル
 CREATE TABLE IF NOT EXISTS categories (
   category_id    INT          NOT NULL AUTO_INCREMENT,
+  user_id        INT          NULL,    
   category_name  VARCHAR(255) NOT NULL,
-  PRIMARY KEY (category_id)
+  PRIMARY KEY (category_id),
+  FOREIGN KEY (user_id)     REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- details テーブル
@@ -37,8 +39,8 @@ INSERT INTO users (user_name, user_password, monthly_budget) VALUES
   ('鈴木太郎', 'Pass1234', 100000);
 
 -- categories テーブル
-INSERT INTO categories (category_name) VALUES
-  ('食費');
+INSERT INTO categories (category_name, user_id) VALUES
+  ('食費', NULL);
 
 -- details テーブル
 INSERT INTO details (user_id, category_id, expense_date, amount, description) VALUES

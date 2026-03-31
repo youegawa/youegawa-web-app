@@ -214,6 +214,7 @@ erDiagram
     }
     categories {
         int category_id PK "カテゴリID"
+        int user_id FK "ユーザーID"
         string category_name "カテゴリ名"
     }
     details {
