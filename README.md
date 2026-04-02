@@ -209,10 +209,12 @@ erDiagram
     users {
         int user_id PK "ユーザーID"
         string user_name "ユーザー名"
+        string user_password "ユーザーパスワード"
         int monthly_budget "月間予算"
     }
     categories {
         int category_id PK "カテゴリID"
+        int user_id FK "ユーザーID"
         string category_name "カテゴリ名"
     }
     details {
