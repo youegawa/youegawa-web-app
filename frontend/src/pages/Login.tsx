@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import FormButton from '../Common/FormButton';
-import { login } from '../api/auth';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import FormButton from "../Common/FormButton";
+import { login } from "../api/auth";
 
 // 型定義
 type LoginFormValues = {
@@ -49,12 +49,12 @@ const Login = () => {
       {apiError && <p className="text-red-500 text-sm mb-4">{apiError}</p>}
 
       <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-        
+
         {/* ユーザーID入力欄 */}
         <div className='flex flex-col'>
           <div className='flex items-center'>
             <label className={labelClass}>ユーザID</label>
-            <input 
+            <input
               className={`${inputBase} ${errors.userName ? 'border-red-500' : 'border-gray-400'}`}
               {...register("userName", {
                 required: "ユーザIDを入力してください",
@@ -62,9 +62,9 @@ const Login = () => {
                 maxLength: { value: 19, message: "20文字未満で入力してください" },
                 pattern: {
                   value: /^[a-zA-Z0-9]+$/,
-                  message: "英数字のみで入力してください"                
+                  message: "英数字のみで入力してください"
                 }
-              })} 
+              })}
             />
           </div>
           <div className='h-4 ml-24'>
@@ -73,24 +73,24 @@ const Login = () => {
               <span className='text-red-500 text-xs'>{errors.userName.message}</span>)}
           </div>
         </div>
-        
+
         {/* パスワード入力欄 */}
         <div className='flex flex-col'>
           <div className='flex items-center'>
             <label className={labelClass}>パスワード</label>
-            <input 
+            <input
               type="password"
               className={`${inputBase} ${errors.userPassword ? 'border-red-500' : 'border-gray-400'}`}
-              {...register("userPassword", { 
+              {...register("userPassword", {
                 required: "パスワードを入力してください",
                 minLength: { value: 8, message: "8文字以上で入力してください" },
                 maxLength: { value: 19, message: "20文字未満で入力してください" },
                 // 英字・数字・記号の混在をチェック
                 pattern: {
                 value: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^\w\s]).+$/,
-                message: "英字・数字・記号をすべて含めてください"              
+                message: "英字・数字・記号をすべて含めてください"
                 }
-              })} 
+              })}
             />
           </div>
           {/* エラーメッセージ表示の定義 */}
@@ -100,7 +100,7 @@ const Login = () => {
         </div>
 
         <div className='ml-24 w-72 flex justify-center space-x-4 mt-8'>
-          <FormButton type="regist" label="新規作成" className={btnClass} onClick={goToSignup} />
+          <FormButton type="button" label="新規作成" className={btnClass} onClick={goToSignup} />
           <FormButton type="submit" label="ログイン" className={btnClass} />
         </div>
       </form>
