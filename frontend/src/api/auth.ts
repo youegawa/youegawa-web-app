@@ -1,7 +1,7 @@
 import type { User } from "../types/auth";
 
 // const BASE_URL = "/api/auth";
-const BASE_URL = "http://localhost:3000/api/auth";
+const BASE_URL = "/api/auth";
 
 // ログイン時
 export const login = async (user_name: string, user_password: string): Promise<{ message: string; user?: User }> => {
