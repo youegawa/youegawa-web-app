@@ -29,7 +29,7 @@ export const signup = async (
   user_name: string,
   user_password: string,
   user_email:string,
-  monthly_budget: number
+  monthly_budget: number | null
   ) : Promise<{ message: string; user?: User }> => {
   // 新規登録データを送信
   const res = await fetch(`${BASE_URL}/signup`,{
