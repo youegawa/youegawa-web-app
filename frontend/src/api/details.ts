@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import type { Detail } from "../types/expense";
+=======
+import type { Detail } from "../types/auth";
+>>>>>>> 79a4bee (ブランチ作成のための保存)
 
 // 支出明細登録に必要なデータの型定義
 export type CreateDetailRequest = Omit<Detail, "detail_id" | "category_id"> & {
@@ -17,7 +21,11 @@ export interface DashboardDataResponse {
   }[];
 };
 
+<<<<<<< HEAD
 const BASE_URL = "/api/details";
+=======
+const BASE_URL = "http://localhost:3000/api/details";
+>>>>>>> 79a4bee (ブランチ作成のための保存)
 
 // 支出明細の新規登録
 export const createDetail = async (data: CreateDetailRequest): Promise<{ message: string }> => {
