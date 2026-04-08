@@ -7,11 +7,11 @@ const auth = new Hono();
 // POST /api/auth/signup　新規登録
 auth.post("/signup", async (c) => {
   const body = await c.req.json();
-  const { user_name, user_password, monthly_budget } = body;
+  const { user_name, user_password, user_email, monthly_budget } = body;
 
   // 入力項目の必須チェック
-  if (!user_name || !user_password) {
-    return c.json({ message: "ユーザー名とパスワードは必須です"}, 400);
+  if (!user_name || !user_password || !user_email) {
+    return c.json({ message: "ユーザー名、パスワード、メールアドレスは必須です"}, 400);
   }
 
   try {
@@ -19,8 +19,8 @@ auth.post("/signup", async (c) => {
     const budget = monthly_budget ?? 0;
 
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      "INSERT INTO users (user_name, user_password, monthly_budget) VALUES (?, ?, ?)",
-      [user_name, user_password, budget]
+      "INSERT INTO users (user_name, user_password, user_email, monthly_budget) VALUES (?, ?, ?, ?)",
+      [user_name, user_password, user_email, budget]
     );
 
     // ユーザー登録成功した場合
@@ -42,7 +42,7 @@ auth.post("/signup", async (c) => {
     // 重複の場合
     if (error.code === "ER_DUP_ENTRY") {
 
-      return c.json({ message: "名前が既に使われています。" }, 409);
+      return c.json({ message: "メールアドレスが既に使われています。" }, 409);
     }
 
     // DB接続エラーの場合
@@ -55,32 +55,32 @@ auth.post("/login", async (c) => {
   try {
     // 入力されたユーザー名とパスワードを取得する
     const body = await c.req.json();
-    const { user_name, user_password } = body;
+    const { user_email, user_password } = body;
 
     // 型定義と必須チェック
     if (
-      typeof user_name !== "string" ||
+      typeof user_email !== "string" ||
       typeof user_password !== "string" ||
-      !user_name ||
+      !user_email ||
       !user_password
     ) {
-      return c.json({ message: "ユーザー名とパスワードは必須です" }, 400);
+      return c.json({ message: "メールアドレスとパスワードは必須です" }, 400);
     }
 
     // 名前とパスワードが両方とも一致するデータがあるか検索
     const [rows] = await pool.query<mysql.RowDataPacket[]>(
-      "SELECT * FROM users WHERE user_name = ? AND user_password = ?",
-      [user_name, user_password]
+      "SELECT * FROM users WHERE user_email = ? AND user_password = ?",
+      [user_email, user_password]
     );
 
     // ユーザー名パスワードを取得できなかった場合
     if (rows.length === 0) {
-      return c.json({ message: "ユーザー名またはパスワードが正しくありません" }, 401);
+      return c.json({ message: "メールアドレスまたはパスワードが正しくありません" }, 401);
     }
 
-    // ユーザー名パスワードが複数ある場合
+    // 複数ある場合
     if (rows.length > 1) {
-      return c.json({ message: "ユーザー名が重複しています" }, 500);
+      return c.json({ message: "メールアドレスが重複しています" }, 500);
     }
 
     const user = rows[0];
@@ -91,6 +91,7 @@ auth.post("/login", async (c) => {
       user: {
         user_id: user.user_id,
         user_name: user.user_name,
+        user_email: user.user_email,
         monthly_budget: user.monthly_budget
       }
     });
@@ -103,7 +104,7 @@ auth.post("/login", async (c) => {
 });
 
 // api/auth/update-budget　-月額設定
-auth.post("/update-budget", async (c) => {
+auth.put("/update-budget", async (c) => {
   try {
     const body = await c.req.json();
     const { user_id, monthly_budget } = body;
