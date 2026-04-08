@@ -1,20 +1,7 @@
+// ユーザー情報を型定義
 export type User = {
-  user_id: number;
+  user_id: number;  // ユーザーを一意に識別するID（自動採番）
   user_name: string;
-  monthly_budget: number;
-};
-
-export type Category = {
-  category_id: number;
-  user_id: number | null;
-  category_name: string;
-};
-
-export type Detail = {
-  detail_id: number;
-  user_id: number;
-  category_id: number;
-  expense_date: string;
-  amount: number; 
-  description: string;
+  user_email: string;
+  monthly_budget: number | null; // ユーザーが設定した１ヶ月あたりの予算
 };
