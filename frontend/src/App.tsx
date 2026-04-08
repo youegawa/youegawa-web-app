@@ -3,10 +3,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 const App = () => {
-  // ログイン済みかの判定
-  const isAuthenticated = () => {
-    return localStorage.getItem("user") !== null;
-  };
 
   return (
     <BrowserRouter>
