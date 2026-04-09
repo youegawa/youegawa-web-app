@@ -183,7 +183,7 @@ npx cdk deploy EcsStack
 EcsStack.AlbDnsName = todo-app-xxxxxxxx.ap-northeast-1.elb.amazonaws.com
 ```
 
-> **注意**: DB の初期化（テーブル作成）は初回デプロイ後に手動で実行するか、  
+> **注意**: DB の初期化（テーブル作成）は初回デプロイ後に手動で実行するか、
 > マイグレーション手順を別途整備してください。
 
 ### 4-7. スタックを削除する（演習終了後）
@@ -195,6 +195,38 @@ cd cdk
 npx cdk destroy --all
 ```
 
+---
+
+## データベース設計
+
+本アプリケーションのデータベース構造（ER図）です。
+
+```mermaid
+erDiagram
+    users ||--o{ details : "1対多"
+    categories ||--o{ details : "1対多"
+
+    users {
+        int user_id PK "ユーザーID"
+        string user_name "ユーザー名"
+        string user_password "ユーザーパスワード"
+        string user_email "メールアドレス"
+        int monthly_budget "月間予算"
+    }
+    categories {
+        int category_id PK "カテゴリID"
+        int user_id FK "ユーザーID"　　　　
+        string category_name "カテゴリ名"
+    }
+    details {
+        int detail_id PK "明細ID"
+        int user_id FK "ユーザーID"
+        int category_id FK "カテゴリID"
+        date expense_date "支出日"
+        int amount "金額"
+        string description "備考（朝食、昼食など）"
+    }
+```
 ---
 
 ## ディレクトリ構成
