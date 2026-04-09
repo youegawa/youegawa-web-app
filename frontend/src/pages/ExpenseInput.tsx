@@ -24,7 +24,7 @@ const ExpenseInput = () => {
   });
 
   // スタイル定義
-  const labelClass = "w-24 text-gray-700";
+  const labelClass = "w-32 text-gray-700";
   const btnClass = "bg-blue-500 text-black py-2 px-6 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
   const inputBase = "border-2 py-1 px-3 rounded-md focus:ring-2 focus:ring-blue-500 outline-none w-72 text-sm";
 
@@ -69,7 +69,7 @@ const ExpenseInput = () => {
     <div className='pl-10 pt-10 max-w-2xl'>
       <h1 className='text-3xl font-bold text-gray-800 mb-8'>支出入力</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+      <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
 
         {/* 日付入力欄 */}
         <div className='flex flex-col'>
@@ -86,7 +86,7 @@ const ExpenseInput = () => {
             />
           </div>
           {/* エラーメッセージ表示の定義 */}
-          <div className='h-4 ml-24'>
+          <div className='h-4 ml-32'>
             {errors.expense_date && <span className='text-red-500 text-xs'>{errors.expense_date.message}</span>}
           </div>
         </div>
@@ -104,7 +104,7 @@ const ExpenseInput = () => {
             />
           </div>
           {/* エラーメッセージ表示の定義 */}
-          <div className='h-4 ml-24'>
+          <div className='h-4 ml-32'>
             {errors.category_name && <span className='text-red-500 text-xs'>{errors.category_name.message}</span>}
           </div>
         </div>
@@ -125,7 +125,7 @@ const ExpenseInput = () => {
             <span className='ml-2 text-sm'>円</span>
           </div>
           {/* エラーメッセージ表示の定義 */}
-          <div className='h-4 ml-24'>
+          <div className='h-4 ml-32'>
             {errors.amount && <span className='text-red-500 text-xs'>{errors.amount.message}</span>}
           </div>
         </div>
@@ -143,12 +143,12 @@ const ExpenseInput = () => {
             />
           </div>
           {/* エラーメッセージ表示の定義 */}
-          <div className='h-4 ml-24'>
+          <div className='h-4 ml-32'>
             {errors.description && <span className='text-red-500 text-xs'>{errors.description.message}</span>}
           </div>
         </div>
 
-        <div className='ml-24 w-72 flex justify-center space-x-4 mt-8'>
+        <div className='ml-32 w-72 flex justify-center space-x-4 mt-8'>
           <FormButton type="button" label="キャンセル" className={btnClass} onClick={goToDashboard} />
           <FormButton type="submit" label="確定" className={btnClass} />
         </div>
