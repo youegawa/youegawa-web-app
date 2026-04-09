@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS details (
 -- 各種テーブルの初期値設定
 -- users テーブル
 INSERT INTO users (user_name, user_password, user_email, monthly_budget) VALUES
-  ('鈴木太郎', 'Pass1234', 'abcd1234@gmail.com', 100000);
+  ('鈴木太郎', 'Pass1234', 'abcd12345@gmail.com', 100000);
 
 -- categories テーブル
 INSERT INTO categories (category_name, user_id) VALUES
