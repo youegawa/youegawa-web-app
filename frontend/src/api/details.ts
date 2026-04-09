@@ -1,4 +1,4 @@
-import type { Detail } from "../types/auth";
+import type { Detail } from "../types/expense";
 
 // 支出明細登録に必要なデータの型定義
 export type CreateDetailRequest = Omit<Detail, "detail_id" | "category_id"> & {
@@ -17,7 +17,7 @@ export interface DashboardDataResponse {
   }[];
 };
 
-const BASE_URL = "http://localhost:3000/api/details";
+const BASE_URL = "/api/details";
 
 // 支出明細の新規登録
 export const createDetail = async (data: CreateDetailRequest): Promise<{ message: string }> => {
