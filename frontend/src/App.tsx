@@ -5,11 +5,6 @@ import Dashboard from "./pages/Dashboard";
 import ExpenseInput from "./pages/ExpenseInput";
 
 const App = () => {
-  // ログイン済みかどうかの判定
-  const isAuthenticated = () => {
-    // return localStorage.getItem("user") !== null;
-    return true;
-  };
 
   return (
     <BrowserRouter>
@@ -29,13 +24,13 @@ const App = () => {
         {/* --- ログインしている場合、ダッシュボード画面、ログインしていない場合、ログイン画面 --- */}
         <Route
           path="/dashboard"
-          element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />}
+          element={<Dashboard /> }
         />
 
         {/* --- ログインしている場合、支出入力画面、ログインしていない場合、ログイン画面 --- */}
         <Route
           path="/input"
-          element={isAuthenticated() ? <ExpenseInput /> : <Navigate to="/login" />}
+          element={<ExpenseInput /> }
         />
 
         {/* 上記以外のURLの場合、サイトトップ（/）へ戻す */}
