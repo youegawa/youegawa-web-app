@@ -20,7 +20,7 @@ const ExpenseInput = () => {
     formState: { errors },
   } = useForm<InputFormValues>({
     defaultValues: { expense_date: "", category_name: "",
-      amount: 0, description: "" }
+      amount: "" as any, description: "" }
   });
 
   // スタイル定義
@@ -48,7 +48,7 @@ const ExpenseInput = () => {
         expense_date: data.expense_date,
         category_name: data.category_name,
         amount: Number(data.amount),
-        description: data.description || ""
+        description: data.description?.trim() || ""
       };
 
       console.log("バックエンドデータ:", requestData);
