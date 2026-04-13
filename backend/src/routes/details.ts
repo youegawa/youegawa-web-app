@@ -14,6 +14,14 @@ details.post("/", async (c) => {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
+    if (!user_id || !expense_date || !category_name) {
+      return c.json({ message: "必須項目が不足しています" }, 400);
+    }
+
+    if (amount === undefined || amount === null || amount <= 0) {
+      return c.json({ message: "金額は１以上で入力してください" }, 400);
+    }
+
     const connection = await pool.getConnection();
 
     try {
@@ -21,7 +29,7 @@ details.post("/", async (c) => {
 
       // カテゴリIDの取得
       const [categories] = await connection.query<mysql.RowDataPacket[]>(
-        "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) LIMIT 1",
+        "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
         [category_name, user_id]
       );
 
@@ -103,6 +111,34 @@ details.get("/dashboard/:user_id", async (c) => {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "データの取得に失敗しました。" }, 500);
+  }
+});
+
+// PUT /api/details/users/:user_id/budget - 予算額の更新
+details.put("/users/:user_id/budget", async (c) => {
+  try {
+    const userId = c.req.param("user_id");
+    const { monthly_budget } = await c.req.json();
+
+    if (monthly_budget === undefined || monthly_budget < 0) {
+      return c.json({ message: "有効な予算額を入力してください" }, 400);
+    }
+
+    // users テーブルの予算を更新
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      "UPDATE users SET monthly_budget = ? WHERE user_id = ?",
+      [monthly_budget, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return c.json({ message: "ユーザーが見つかりませんでした" }, 404);
+    }
+
+    return c.json({ message: "予算を更新しました" }, 200);
+
+  } catch (e: any) {
+    console.error("[Budget Update Error]:", e);
+    return c.json({ message: "予算の更新に失敗しました" }, 500);
   }
 });
 
