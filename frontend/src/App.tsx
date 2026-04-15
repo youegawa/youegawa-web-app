@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ExpenseInput from "./pages/ExpenseInput";
+import ExpenseHistory from "./pages/ExpenseHistory";
+
 
 const App = () => {
 
@@ -21,16 +23,22 @@ const App = () => {
           element={ <Navigate to="/login" /> }
         />
 
-        {/* --- ログインしている場合、ダッシュボード画面、ログインしていない場合、ログイン画面 --- */}
+        {/* --- ダッシュボード画面 --- */}
         <Route
           path="/dashboard"
           element={<Dashboard /> }
         />
 
-        {/* --- ログインしている場合、支出入力画面、ログインしていない場合、ログイン画面 --- */}
+        {/* --- 支出入力画面 --- */}
         <Route
           path="/input"
           element={<ExpenseInput /> }
+        />
+
+        {/* --- 支払履歴画面 --- */}
+        <Route
+          path="/history"
+          element={<ExpenseHistory /> }
         />
 
         {/* 上記以外のURLの場合、サイトトップ（/）へ戻す */}
