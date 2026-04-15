@@ -17,6 +17,17 @@ export interface DashboardDataResponse {
   }[];
 };
 
+// 全履歴取得用の型定義
+export type HistoryItem = Omit<Detail, "category_id"> & {
+  category_name: string;
+}
+export interface HistoryResponse{
+  message: string;
+  history: HistoryItem[];
+  totalCount: number;
+  totalPages: number;
+}
+
 const BASE_URL = "http://localhost:3000/api/details";
 
 // 支出明細の新規登録
@@ -67,4 +78,19 @@ export const updateMonthlyBudget = async (user_id: number, budget: number): Prom
   }
 
   return res.json() as Promise<{ message: string }>;
+};
+
+// 支出履歴の取得
+export const getAllHistory = async (user_id: number, page: number = 1): Promise<HistoryResponse> => {
+  const res = await fetch(`${BASE_URL}/history/${user_id}?page=${page}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch history data: ${res.status}`);
+  }
+  return res.json() as Promise<HistoryResponse>;
 };
