@@ -4,11 +4,17 @@ type Props = {
   label: string;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
 };
 
-const FormButton = ({ type = "button", label, className, onClick }: Props) => {
+const FormButton = ({ type = "button", label, className, onClick, disabled }: Props) => {
   return (
-    <button type={type} className={className} onClick={onClick}>
+    <button
+      type={type}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {label}
     </button>
   );
