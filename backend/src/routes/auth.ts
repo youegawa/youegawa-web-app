@@ -18,10 +18,12 @@ auth.post("/signup", async (c) => {
   }
 
   try {
-    // usersテーブルにデータを挿入、月額設定額がゼロの場合、ゼロを設定する
+    // usersテーブルにデータを挿入、月額設定額が未設定の場合、０を設定する
+    const budget = monthly_budget ?? 0;
+
     const [result] = await pool.query<mysql.ResultSetHeader>(
       "INSERT INTO users (user_name, user_password, user_email, monthly_budget) VALUES (?, ?, ?, ?)",
-      [user_name, user_password, user_email, monthly_budget || 0],
+      [user_name, user_password, user_email, budget],
     );
 
     // ユーザー登録成功した場合
@@ -31,7 +33,8 @@ auth.post("/signup", async (c) => {
         user: {
           user_id: result.insertId,
           user_name: user_name,
-          monthly_budget: monthly_budget || 0,
+          user_email: user_email,
+          monthly_budget: budget,
         },
       },
       201,
@@ -70,23 +73,18 @@ auth.post("/login", async (c) => {
       return c.json({ message: "メールアドレスとパスワードは必須です" }, 400);
     }
 
-    // 名前とパスワードが両方とも一致するデータがあるか検索
+    // メールアドレスとパスワードが一致するユーザー情報があるか検索
     const [rows] = await pool.query<mysql.RowDataPacket[]>(
       "SELECT * FROM users WHERE user_email = ? AND user_password = ?",
       [user_email, user_password],
     );
 
-    // ユーザー名パスワードを取得できなかった場合
+    // ユーザー情報を取得できなかった場合
     if (rows.length === 0) {
       return c.json(
         { message: "メールアドレスまたはパスワードが正しくありません" },
         401,
       );
-    }
-
-    // 複数ある場合
-    if (rows.length > 1) {
-      return c.json({ message: "メールアドレスが重複しています" }, 500);
     }
 
     const user = rows[0];

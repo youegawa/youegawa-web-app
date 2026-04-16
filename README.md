@@ -8,14 +8,14 @@
 
 ## 技術スタック
 
-| 領域 | 技術 |
-|------|------|
-| フロントエンド | React 18, TypeScript, Vite, Tailwind CSS |
-| バックエンド | Hono, @hono/node-server, TypeScript |
-| データベース | MySQL 8.0 |
-| テスト | Vitest, React Testing Library |
-| ローカル環境 | Docker Compose |
-| AWS インフラ | ECS Fargate, RDS, ALB, ECR, Secrets Manager（AWS CDK で構成） |
+| 領域           | 技術                                                          |
+| -------------- | ------------------------------------------------------------- |
+| フロントエンド | React 18, TypeScript, Vite, Tailwind CSS                      |
+| バックエンド   | Hono, @hono/node-server, TypeScript                           |
+| データベース   | MySQL 8.0                                                     |
+| テスト         | Vitest, React Testing Library                                 |
+| ローカル環境   | Docker Compose                                                |
+| AWS インフラ   | ECS Fargate, RDS, ALB, ECR, Secrets Manager（AWS CDK で構成） |
 
 ---
 
@@ -67,9 +67,9 @@ docker compose up --build
 
 ### アクセス
 
-| サービス | URL |
-|---------|-----|
-| フロントエンド | http://localhost:5173 |
+| サービス         | URL                             |
+| ---------------- | ------------------------------- |
+| フロントエンド   | http://localhost:5173           |
 | バックエンド API | http://localhost:3000/api/todos |
 
 ### API の確認（curl サンプル）
@@ -227,6 +227,7 @@ erDiagram
         string description "備考（朝食、昼食など）"
     }
 ```
+
 ---
 
 ## ディレクトリ構成
