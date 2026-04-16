@@ -1,64 +1,42 @@
-import { useEffect, useState } from "react";
-import type { Todo } from "./types/todo";
-import { getTodos } from "./api/todos";
-import AddTodo from "./components/AddTodo";
-import TodoList from "./components/TodoList";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import ExpenseInput from "./pages/ExpenseInput";
 
 const App = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // 初回マウント時に Todo 一覧を取得する
-  useEffect(() => {
-    const fetchTodos = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getTodos();
-        setTodos(data);
-      } catch {
-        setError("Todo 一覧の取得に失敗しました。");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchTodos();
-  }, []);
-
-  // 新しく作成された Todo を一覧に追加する
-  const handleCreated = (todo: Todo) => {
-    setTodos((prev) => [...prev, todo]);
-  };
-
-  // 更新された Todo で一覧を更新する
-  const handleUpdated = (updated: Todo) => {
-    setTodos((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-          Todo リスト
-        </h1>
+    <BrowserRouter>
+      {/* --- どのURLでどの画面を表示させているか --- */}
 
-        {/* 新規 Todo 作成フォーム */}
-        <div className="mb-6">
-          <AddTodo onCreated={handleCreated} />
-        </div>
+      <Routes>
+        {/* --- ログイン画面・新規登録画面 --- */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-        {/* Todo 一覧 */}
-        {isLoading ? (
-          <p className="text-center text-gray-400">読み込み中...</p>
-        ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
-        ) : (
-          <TodoList todos={todos} onUpdated={handleUpdated} />
-        )}
-      </div>
-    </div>
+        {/* --- サイトのトップ、ログイン画面 --- */}
+        <Route
+          path="/"
+          element={ <Navigate to="/login" /> }
+        />
+
+        {/* --- ログインしている場合、ダッシュボード画面、ログインしていない場合、ログイン画面 --- */}
+        <Route
+          path="/dashboard"
+          element={<Dashboard /> }
+        />
+
+        {/* --- ログインしている場合、支出入力画面、ログインしていない場合、ログイン画面 --- */}
+        <Route
+          path="/input"
+          element={<ExpenseInput /> }
+        />
+
+        {/* 上記以外のURLの場合、サイトトップ（/）へ戻す */}
+        <Route path="/*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
