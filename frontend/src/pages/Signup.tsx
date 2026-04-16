@@ -120,7 +120,8 @@ const Signup = () => {
               min="0"
               className={`${inputBase} ${errors.budget ? 'border-red-500' : 'border-gray-400'}`}
               {...register("budget", {
-                valueAsNumber: true,
+                setValueAs: (value) => (value === "" ? 0 : Number(value)),
+                validate: (v) => Number.isFinite(v) || "有効な金額を入力して下さい",
                 min: { value: 0, message: "0円以上の金額を入力して下さい" }
               })}
             />
