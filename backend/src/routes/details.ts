@@ -10,15 +10,11 @@ details.post("/", async (c) => {
     const body = await c.req.json();
     const { user_id, expense_date, category_name, amount, description } = body;
 
-    if (!user_id || !expense_date || !category_name || !amount) {
-      return c.json({ message: "必須項目が不足しています" }, 400);
-    }
-
     if (!user_id || !expense_date || !category_name) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
-    if (amount === undefined || amount === null || amount <= 0) {
+    if (!amount || amount <=  0) {
       return c.json({ message: "金額は１以上で入力してください" }, 400);
     }
 
@@ -92,10 +88,16 @@ details.get("/dashboard/:user_id", async (c) => {
     const monthlyTotal = totalRows[0].total || 0;
 
     const [historyRows] = await pool.query<mysql.RowDataPacket[]>(
-      `SELECT d.expense_date, c.category_name, d.amount, d.description
-       FROM details d JOIN categories c ON d.category_id = c.category_id
-       WHERE d.user_id = ? ORDER BY d.expense_date DESC, d.detail_id DESC LIMIT 5`,
-      [userId]
+      `SELECT
+        DATE_FORMAT(d.expense_date, '%Y-%m-%d') AS expense_date,
+        c.category_name,
+        d.amount,
+        d.description
+      FROM details d
+      JOIN categories c ON d.category_id = c.category_id
+      WHERE d.user_id = ?
+      ORDER BY d.expense_date DESC, d.detail_id DESC
+      LIMIT 5`, [userId]
     );
 
     return c.json({
@@ -139,6 +141,51 @@ details.put("/users/:user_id/budget", async (c) => {
   } catch (e: any) {
     console.error("[Budget Update Error]:", e);
     return c.json({ message: "予算の更新に失敗しました" }, 500);
+  }
+});
+
+// GET /api/details/history/:user_id - 全履歴取得
+details.get("/history/:user_id", async (c) => {
+  const userId = c.req.param("user_id");
+
+  const page = parseInt(c.req.query("page") || "1");
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+        d.detail_id,
+        DATE_FORMAT(d.expense_date, '%Y-%m-%d') AS expense_date,
+        c.category_name,
+        d.amount,
+        d.description
+      FROM details d
+      JOIN categories c ON d.category_id = c.category_id
+      WHERE d.user_id = ?
+      ORDER BY d.expense_date DESC, d.detail_id DESC
+      LIMIT ? OFFSET ?`, [userId, limit, offset]
+    );
+
+    const [[{ totalCount }]] = await pool.query<mysql.RowDataPacket[]>(
+      `SELECT Count(*) as totalCount FROM details WHERE user_id = ?`,
+      [userId]
+      );
+
+    return c.json({
+      message: "履歴データの取得に成功しました",
+      history: rows,
+      totalCount: totalCount,
+      totalPages: Math.ceil(totalCount / limit)
+    }, 200);
+
+  } catch (e: any) {
+    console.error("[History Data Error]", e);
+
+    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST"){
+      return c.json({ message: "データベースに接続できません" }, 503);
+    }
+    return c.json({ message: "履歴の取得に失敗しました"}, 500);
   }
 });
 
