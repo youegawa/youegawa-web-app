@@ -1,4 +1,4 @@
-import { Detail } from './../types/expense';
+import { Detail } from "./../types/expense";
 
 // 支出明細登録に必要なデータの型定義
 export type CreateDetailRequest = Omit<Detail, "detail_id" | "category_id"> & {
@@ -15,13 +15,13 @@ export interface DashboardDataResponse {
     amount: number;
     description: string;
   }[];
-};
+}
 
 // 全履歴取得用の型定義
 export type HistoryItem = Omit<Detail, "category_id"> & {
   category_name: string;
-}
-export interface HistoryResponse{
+};
+export interface HistoryResponse {
   message: string;
   history: HistoryItem[];
   totalCount: number;
@@ -31,11 +31,13 @@ export interface HistoryResponse{
 const BASE_URL = "http://localhost:3000/api/details";
 
 // 支出明細の新規登録
-export const createDetail = async (data: CreateDetailRequest): Promise<{ message: string }> => {
+export const createDetail = async (
+  data: CreateDetailRequest,
+): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
@@ -49,11 +51,14 @@ export const createDetail = async (data: CreateDetailRequest): Promise<{ message
 
 // ダッシュボードデータの取得
 
-export const getDashboardData = async (user_id: number): Promise<DashboardDataResponse> => {
+export const getDashboardData = async (
+  user_id: number,
+): Promise<DashboardDataResponse> => {
   const res = await fetch(`${BASE_URL}/dashboard/${user_id}`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json" },
+      "Content-Type": "application/json",
+    },
   });
 
   if (!res.ok) {
@@ -64,11 +69,14 @@ export const getDashboardData = async (user_id: number): Promise<DashboardDataRe
 };
 
 // 予算額の更新
-export const updateMonthlyBudget = async (user_id: number, budget: number): Promise<{ message: string }> => {
+export const updateMonthlyBudget = async (
+  user_id: number,
+  budget: number,
+): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}/users/${user_id}/budget`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ monthly_budget: budget }),
   });
@@ -81,11 +89,14 @@ export const updateMonthlyBudget = async (user_id: number, budget: number): Prom
 };
 
 // 支出履歴の取得
-export const getAllHistory = async (user_id: number, page: number = 1): Promise<HistoryResponse> => {
+export const getAllHistory = async (
+  user_id: number,
+  page: number = 1,
+): Promise<HistoryResponse> => {
   const res = await fetch(`${BASE_URL}/history/${user_id}?page=${page}`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 

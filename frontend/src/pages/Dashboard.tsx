@@ -30,7 +30,7 @@ const Dashboard = () => {
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      setIsModalOpen(false);
+
       setApiError("");
     } catch (error){
       setApiError("予算の更新に失敗しました");
