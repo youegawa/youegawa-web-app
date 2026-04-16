@@ -1,4 +1,4 @@
-import { Detail } from './../types/expense';
+import { Detail } from "./../types/expense";
 
 // 支出明細登録に必要なデータの型定義
 export type CreateDetailRequest = Omit<Detail, "detail_id" | "category_id"> & {
