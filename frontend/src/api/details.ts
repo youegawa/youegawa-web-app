@@ -76,3 +76,37 @@ export const updateMonthlyBudget = async (
 
   return res.json() as Promise<{ message: string }>;
 };
+
+// 特定明細を取得（支出編集画面）
+export const getDetailItem = async (
+  detail_id: string | number,
+): Promise<Detail & { category_name: string }> => {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch detail item: ${res.status}`);
+  }
+
+  return res.json();
+};
+
+// 支出編集画面での明細保存
+export const updateDetailItem = async (
+  detail_id: string | number,
+  data: CreateDetailRequest,
+): Promise<{ message: string }> => {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to update detail item: ${res.status}`);
+  }
+
+  return res.json();
+};
