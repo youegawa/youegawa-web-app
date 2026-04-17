@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import todos from "./routes/todos.js";
 import auth from  "./routes/auth.js";
+import details from "./routes/details.js";
 
 const app = new Hono();
 
@@ -11,7 +12,7 @@ app.use(
   "/api/*",
   cors({
     origin: ["http://localhost:5173"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type"],
   })
 );
@@ -19,6 +20,7 @@ app.use(
 // ルーターを登録
 app.route("/api/todos", todos);
 app.route("/api/auth", auth);
+app.route("/api/details", details);
 
 // サーバーの起動
 const port = Number(process.env.PORT ?? 3000);

@@ -11,7 +11,10 @@ auth.post("/signup", async (c) => {
 
   // 入力項目の必須チェック
   if (!user_name || !user_password || !user_email) {
-    return c.json({ message: "ユーザー名、パスワード、メールアドレスは必須です"}, 400);
+    return c.json(
+      { message: "ユーザー名、パスワード、メールアドレスは必須です" },
+      400,
+    );
   }
 
   try {
@@ -20,19 +23,22 @@ auth.post("/signup", async (c) => {
 
     const [result] = await pool.query<mysql.ResultSetHeader>(
       "INSERT INTO users (user_name, user_password, user_email, monthly_budget) VALUES (?, ?, ?, ?)",
-      [user_name, user_password, user_email, budget]
+      [user_name, user_password, user_email, budget],
     );
 
     // ユーザー登録成功した場合
-    return c.json({
-      message: "新規ユーザー登録が完了しました。",
-      user:{
-        user_id: result.insertId,
-        user_name: user_name,
-        user_email: user_email,
-        monthly_budget: budget
-      }
-    }, 201);
+    return c.json(
+      {
+        message: "新規ユーザー登録が完了しました。",
+        user: {
+          user_id: result.insertId,
+          user_name: user_name,
+          user_email: user_email,
+          monthly_budget: budget,
+        },
+      },
+      201,
+    );
   } catch (e) {
     // 接続エラー等の場合
     console.error(e);
@@ -42,7 +48,6 @@ auth.post("/signup", async (c) => {
 
     // 重複の場合
     if (error.code === "ER_DUP_ENTRY") {
-
       return c.json({ message: "メールアドレスが既に使われています。" }, 409);
     }
 
@@ -71,12 +76,15 @@ auth.post("/login", async (c) => {
     // メールアドレスとパスワードが一致するユーザー情報があるか検索
     const [rows] = await pool.query<mysql.RowDataPacket[]>(
       "SELECT * FROM users WHERE user_email = ? AND user_password = ?",
-      [user_email, user_password]
+      [user_email, user_password],
     );
 
     // ユーザー情報を取得できなかった場合
     if (rows.length === 0) {
-      return c.json({ message: "メールアドレスまたはパスワードが正しくありません" }, 401);
+      return c.json(
+        { message: "メールアドレスまたはパスワードが正しくありません" },
+        401,
+      );
     }
 
     const user = rows[0];
@@ -88,41 +96,13 @@ auth.post("/login", async (c) => {
         user_id: user.user_id,
         user_name: user.user_name,
         user_email: user.user_email,
-        monthly_budget: user.monthly_budget
-      }
+        monthly_budget: user.monthly_budget,
+      },
     });
-
   } catch (e) {
     // 例外処理
     console.error(e);
     return c.json({ message: "ログインに失敗しました" }, 500);
-  }
-});
-
-// api/auth/update-budget　-月額設定
-auth.put("/update-budget", async (c) => {
-  try {
-    const body = await c.req.json();
-    const { user_id, monthly_budget } = body;
-
-    if (!user_id || monthly_budget === undefined){
-      return c.json({ message: "ユーザーIDと予算額が必要です"}, 400);
-    }
-    const [result] = await pool.query<mysql.ResultSetHeader>(
-      "UPDATE users SET monthly_budget = ? WHERE user_id = ?",
-      [monthly_budget, user_id]
-    );
-    if(result.affectedRows === 0){
-      return c.json({ message: "ユーザーが見つかりませんでした"}, 404);
-    }
-    return c.json({
-      message: "予算額を更新しました",
-      monthly_budget: monthly_budget
-    });
-
-  } catch(e){
-    console.error(e);
-    return c.json({ message: "予算の更新処理中に予期せぬエラーが発生しました" }, 500);
   }
 });
 
