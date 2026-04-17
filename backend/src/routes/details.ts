@@ -14,7 +14,7 @@ details.post("/", async (c) => {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
-    if (!amount || amount <=  0) {
+    if (!amount || amount <= 0) {
       return c.json({ message: "金額は１以上で入力してください" }, 400);
     }
 
@@ -26,7 +26,7 @@ details.post("/", async (c) => {
       // カテゴリIDの取得
       const [categories] = await connection.query<mysql.RowDataPacket[]>(
         "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
-        [category_name, user_id]
+        [category_name, user_id],
       );
 
       let categoryId: number;
@@ -35,7 +35,7 @@ details.post("/", async (c) => {
       } else {
         const [result] = await connection.query<mysql.ResultSetHeader>(
           "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
-          [category_name, user_id]
+          [category_name, user_id],
         );
         categoryId = result.insertId;
       }
@@ -43,12 +43,11 @@ details.post("/", async (c) => {
       // details テーブルへの保存
       await connection.query<mysql.ResultSetHeader>(
         "INSERT INTO details (user_id, category_id, expense_date, amount, description) VALUES (?, ?, ?, ?, ?)",
-        [user_id, categoryId, expense_date, amount, description ?? ""]
+        [user_id, categoryId, expense_date, amount, description ?? ""],
       );
 
       await connection.commit();
       return c.json({ message: "支出を登録しました" }, 201);
-
     } catch (dbError) {
       await connection.rollback();
       throw dbError;
@@ -68,7 +67,7 @@ details.get("/dashboard/:user_id", async (c) => {
 
     const [userCheck] = await pool.query<mysql.RowDataPacket[]>(
       "SELECT user_id FROM users WHERE user_id = ?",
-      [userId]
+      [userId],
     );
 
     if (userCheck.length === 0) {
@@ -78,7 +77,7 @@ details.get("/dashboard/:user_id", async (c) => {
     const [totalRows] = await pool.query<mysql.RowDataPacket[]>(
       `SELECT SUM(amount) as total FROM details
        WHERE user_id = ? AND DATE_FORMAT(expense_date, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')`,
-      [userId]
+      [userId],
     );
     const monthlyTotal = totalRows[0].total || 0;
 
@@ -92,7 +91,8 @@ details.get("/dashboard/:user_id", async (c) => {
       JOIN categories c ON d.category_id = c.category_id
       WHERE d.user_id = ?
       ORDER BY d.expense_date DESC, d.detail_id DESC
-      LIMIT 5`, [userId]
+      LIMIT 5`,
+      [userId],
     );
 
     return c.json(
@@ -122,7 +122,7 @@ details.put("/users/:user_id/budget", async (c) => {
     // users テーブルの予算を更新
     const [result] = await pool.query<mysql.ResultSetHeader>(
       "UPDATE users SET monthly_budget = ? WHERE user_id = ?",
-      [monthly_budget, userId]
+      [monthly_budget, userId],
     );
 
     if (result.affectedRows === 0) {
@@ -156,20 +156,14 @@ details.get("/history/:user_id", async (c) => {
       JOIN categories c ON d.category_id = c.category_id
       WHERE d.user_id = ?
       ORDER BY d.expense_date DESC, d.detail_id DESC
-      LIMIT ? OFFSET ?`, [userId, limit, offset]
+      LIMIT ? OFFSET ?`,
+      [userId, limit, offset],
     );
 
     const [[{ totalCount }]] = await pool.query<mysql.RowDataPacket[]>(
       `SELECT Count(*) as totalCount FROM details WHERE user_id = ?`,
-      [userId]
-      );
-
-    return c.json({
-      message: "履歴データの取得に成功しました",
-      history: rows,
-      totalCount: totalCount,
-      totalPages: Math.ceil(totalCount / limit)
-    }, 200);
+      [userId],
+    );
 
     return c.json(
       {
