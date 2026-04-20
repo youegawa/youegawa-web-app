@@ -10,15 +10,11 @@ details.post("/", async (c) => {
     const body = await c.req.json();
     const { user_id, expense_date, category_name, amount, description } = body;
 
-    if (!user_id || !expense_date || !category_name || !amount) {
-      return c.json({ message: "必須項目が不足しています" }, 400);
-    }
-
     if (!user_id || !expense_date || !category_name) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
-    if (amount === undefined || amount === null || amount <= 0) {
+    if (!amount || amount <= 0) {
       return c.json({ message: "金額は１以上で入力してください" }, 400);
     }
 
@@ -30,7 +26,7 @@ details.post("/", async (c) => {
       // カテゴリIDの取得
       const [categories] = await connection.query<mysql.RowDataPacket[]>(
         "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
-        [category_name, user_id]
+        [category_name, user_id],
       );
 
       let categoryId: number;
@@ -39,7 +35,7 @@ details.post("/", async (c) => {
       } else {
         const [result] = await connection.query<mysql.ResultSetHeader>(
           "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
-          [category_name, user_id]
+          [category_name, user_id],
         );
         categoryId = result.insertId;
       }
@@ -47,19 +43,17 @@ details.post("/", async (c) => {
       // details テーブルへの保存
       await connection.query<mysql.ResultSetHeader>(
         "INSERT INTO details (user_id, category_id, expense_date, amount, description) VALUES (?, ?, ?, ?, ?)",
-        [user_id, categoryId, expense_date, amount, description ?? ""]
+        [user_id, categoryId, expense_date, amount, description ?? ""],
       );
 
       await connection.commit();
       return c.json({ message: "支出を登録しました" }, 201);
-
     } catch (dbError) {
       await connection.rollback();
       throw dbError;
     } finally {
       connection.release();
     }
-
   } catch (e: any) {
     console.error("[Details Registration Error]:", e);
 
@@ -77,7 +71,7 @@ details.get("/dashboard/:user_id", async (c) => {
 
     const [userCheck] = await pool.query<mysql.RowDataPacket[]>(
       "SELECT user_id FROM users WHERE user_id = ?",
-      [userId]
+      [userId],
     );
 
     if (userCheck.length === 0) {
@@ -87,7 +81,7 @@ details.get("/dashboard/:user_id", async (c) => {
     const [totalRows] = await pool.query<mysql.RowDataPacket[]>(
       `SELECT SUM(amount) as total FROM details
        WHERE user_id = ? AND DATE_FORMAT(expense_date, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')`,
-      [userId]
+      [userId],
     );
     const monthlyTotal = totalRows[0].total || 0;
 
@@ -101,15 +95,18 @@ details.get("/dashboard/:user_id", async (c) => {
       JOIN categories c ON d.category_id = c.category_id
       WHERE d.user_id = ?
       ORDER BY d.expense_date DESC, d.detail_id DESC
-      LIMIT 5`, [userId]
+      LIMIT 5`,
+      [userId],
     );
 
-    return c.json({
-      message: "ダッシュボードデータの取得に成功しました",
-      monthlyTotal,
-      recentHistory: historyRows
-    }, 200);
-
+    return c.json(
+      {
+        message: "ダッシュボードデータの取得に成功しました",
+        monthlyTotal,
+        recentHistory: historyRows,
+      },
+      200,
+    );
   } catch (e: any) {
     console.error("[Dashboard Data Error]:", e);
 
@@ -133,7 +130,7 @@ details.put("/users/:user_id/budget", async (c) => {
     // users テーブルの予算を更新
     const [result] = await pool.query<mysql.ResultSetHeader>(
       "UPDATE users SET monthly_budget = ? WHERE user_id = ?",
-      [monthly_budget, userId]
+      [monthly_budget, userId],
     );
 
     if (result.affectedRows === 0) {
@@ -141,7 +138,6 @@ details.put("/users/:user_id/budget", async (c) => {
     }
 
     return c.json({ message: "予算を更新しました" }, 200);
-
   } catch (e: any) {
     console.error("[Budget Update Error]:", e);
     return c.json({ message: "予算の更新に失敗しました" }, 500);
@@ -168,28 +164,155 @@ details.get("/history/:user_id", async (c) => {
       JOIN categories c ON d.category_id = c.category_id
       WHERE d.user_id = ?
       ORDER BY d.expense_date DESC, d.detail_id DESC
-      LIMIT ? OFFSET ?`, [userId, limit, offset]
+      LIMIT ? OFFSET ?`,
+      [userId, limit, offset],
     );
 
     const [[{ totalCount }]] = await pool.query<mysql.RowDataPacket[]>(
       `SELECT Count(*) as totalCount FROM details WHERE user_id = ?`,
-      [userId]
-      );
+      [userId],
+    );
 
-    return c.json({
-      message: "履歴データの取得に成功しました",
-      history: rows,
-      totalCount: totalCount,
-      totalPages: Math.ceil(totalCount / limit)
-    }, 200);
-
+    return c.json(
+      {
+        message: "履歴データの取得に成功しました",
+        history: rows,
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+      200,
+    );
   } catch (e: any) {
     console.error("[History Data Error]", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST"){
+    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
       return c.json({ message: "データベースに接続できません" }, 503);
     }
-    return c.json({ message: "履歴の取得に失敗しました"}, 500);
+    return c.json({ message: "履歴の取得に失敗しました" }, 500);
+  }
+});
+
+// GET /api/details/item/:detail_id 支出編集画面での指定した明細
+details.get("/item/:detail_id", async (c) => {
+  try {
+    const detailId = c.req.param("detail_id");
+
+    const [rows] = await pool.query<mysql.RowDataPacket[]>(
+      `SELECT
+        d.detail_id,
+        DATE_FORMAT(d.expense_date, '%Y-%m-%d') AS expense_date,
+        c.category_name,
+        d.amount,
+        d.description
+      FROM details d
+      JOIN categories c ON d.category_id = c.category_id
+      WHERE d.detail_id = ?`,
+      [detailId],
+    );
+
+    if (rows.length === 0) {
+      return c.json({ message: "データが見つかりません" }, 404);
+    }
+
+    return c.json(rows[0], 200);
+  } catch (e: any) {
+    console.error("[Get Detail Item Error]:", e);
+
+    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "データの取得に失敗しました。" }, 500);
+  }
+});
+
+// PUT /api/details/item/:detail_id - 支出明細の更新
+details.put("/item/:detail_id", async (c) => {
+  const detailId = c.req.param("detail_id");
+  const body = await c.req.json();
+  const { user_id, expense_date, category_name, amount, description } = body;
+
+  if (!expense_date || !category_name) {
+    return c.json({ message: "必須項目が不足しています" }, 400);
+  }
+  if (!amount || amount <= 0) {
+    return c.json({ message: "金額は1以上で入力してください" }, 400);
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // カテゴリを検索
+    const [categories] = await connection.query<mysql.RowDataPacket[]>(
+      "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
+      [category_name, user_id],
+    );
+
+    let categoryId: number;
+
+    if (categories.length > 0) {
+      categoryId = categories[0].category_id;
+    } else {
+      // カテゴリが見つからなかった場合、追加
+      const [result] = await connection.query<mysql.ResultSetHeader>(
+        "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
+        [category_name, user_id],
+      );
+      categoryId = result.insertId;
+    }
+
+    // details テーブルの更新
+    const [result] = await connection.query<mysql.ResultSetHeader>(
+      `UPDATE details
+       SET category_id = ?, expense_date = ?, amount = ?, description = ?
+       WHERE detail_id = ? AND user_id = ?`,
+      [categoryId, expense_date, amount, description ?? "", detailId, user_id],
+    );
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return c.json(
+        { message: "更新対象が見つからないか、権限がありません" },
+        404,
+      );
+    }
+
+    await connection.commit();
+    return c.json({ message: "支出明細を更新しました" }, 200);
+  } catch (e: any) {
+    await connection.rollback();
+    console.error("[Update Detail Item Error]:", e);
+
+    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+      return c.json({ message: "データベースに接続できません" }, 503);
+    }
+    return c.json({ message: "更新に失敗しました" }, 500);
+  }
+});
+
+// DELETE /api/details/item/:detail_id - 支出明細の削除
+details.delete("/item/:detail_id", async (c) => {
+  try {
+    const detailId = c.req.param("detail_id");
+    const { user_id } = await c.req.json();
+
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      "DELETE FROM details WHERE detail_id = ? AND user_id = ?",
+      [detailId, user_id],
+    );
+
+    if (result.affectedRows === 0) {
+      return c.json({ message: "削除対象が見つかりません" }, 404);
+    }
+
+    return c.json({ message: "明細を削除しました" }, 200);
+  } catch (e: any) {
+    console.error("[Delete Detail Item Error]:", e);
+
+    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "削除に失敗しました。" }, 500);
   }
 });
 
