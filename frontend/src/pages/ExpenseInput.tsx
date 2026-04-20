@@ -1,18 +1,23 @@
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import FormButton from "../Common/FormButton";
 import { useNavigate } from "react-router-dom";
 import { createDetail, CreateDetailRequest } from "../api/details";
+import { useAuth } from "../Common/AuthContext";
+import { User } from "../types/auth";
 
 // 型定義
 type InputFormValues = {
   expense_date: string;
   category_name: string;
-  amount: number;
+  amount: string;
   description: string;
 };
 
 const ExpenseInput = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const today = new Date().toISOString().split("T")[0];
   const {
     register,
@@ -22,10 +27,23 @@ const ExpenseInput = () => {
     defaultValues: {
       expense_date: "",
       category_name: "",
-      amount: "" as any,
+      amount: "",
       description: "",
     },
   });
+
+  // 画面起動時
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   // スタイル定義
   const labelClass = "w-32 text-gray-700";
@@ -33,6 +51,8 @@ const ExpenseInput = () => {
     "bg-blue-500 text-black py-2 px-6 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
   const inputBase =
     "border-2 py-1 px-3 rounded-md focus:ring-2 focus:ring-blue-500 outline-none w-72 text-sm text-right";
+  const logoutBtnClass =
+    "ml-4 bg-blue-500 text-white py-1 px-3 rounded text-xs font-bold hover:bg-blue-600 transition-all shadow-sm";
 
   const goToDashboard = () => navigate("/dashboard");
 
@@ -53,7 +73,7 @@ const ExpenseInput = () => {
         user_id: Number(user.user_id),
         expense_date: data.expense_date,
         category_name: data.category_name,
-        amount: Number(data.amount),
+        amount: Number(data.amount) || 0,
         description: data.description?.trim() || "",
       };
 
@@ -70,8 +90,18 @@ const ExpenseInput = () => {
   };
 
   return (
-    <div className="pl-10 pt-10 max-w-2xl">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">支出入力</h1>
+    <div className="pl-10 pt-10 pb-20 max-w-4xl relative">
+      {/* ヘッダー */}
+      <div className="absolute top-10 right-10 text-right">
+        <p className="text-sm mb-2">名前：{user?.user_name} 様</p>
+        <FormButton
+          label="ログアウト"
+          className={logoutBtnClass}
+          onClick={handleLogout}
+        />
+      </div>
+
+      <h1 className="text-3xl font-bold text-gray-800 mb-12">支出入力</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {/* 日付入力欄 */}
