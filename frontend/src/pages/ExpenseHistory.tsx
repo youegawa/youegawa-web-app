@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { User } from "../types/auth";
-import FormButton from '../Common/FormButton';
-import { getAllHistory, HistoryItem } from '../api/details';
+import FormButton from "../Common/FormButton";
+import { getAllHistory, HistoryItem, deleteDetailItem } from "../api/details";
+import { useAuth } from "../Common/AuthContext";
 
 const ExpenseHistory = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  const { logout } = useAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
 
   // ページ管理
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,13 +21,10 @@ const ExpenseHistory = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser) as User;
       setUser(parsedUser);
-
       // 履歴取得関数
       fetchHistoryData(parsedUser.user_id, currentPage);
-    } else {
-      navigate("/login");
     }
-  }, [navigate, currentPage]);
+  }, [currentPage]);
 
   // バックエンドから履歴データ取得
   const fetchHistoryData = async (userId: number, page: number) => {
@@ -38,8 +37,25 @@ const ExpenseHistory = () => {
     }
   };
 
+  // 削除処理
+  const handleDelete = async (detailId: number) => {
+    if (!user) return;
+
+    if (!window.confirm("この明細を削除しますか？")) return;
+
+    try {
+      await deleteDetailItem(detailId, user.user_id);
+
+      fetchHistoryData(user.user_id, currentPage);
+    } catch (error) {
+      console.error("削除に失敗しました:", error);
+      alert("削除に失敗しました。");
+    }
+  };
+
   // スタイル定義
-  const btnBase = "rounded font-bold transition-all shadow-sm flex items-center justify-center";
+  const btnBase =
+    "rounded font-bold transition-all shadow-sm flex items-center justify-center";
   const btnBlue = `${btnBase} bg-blue-500 text-white hover:bg-blue-600`;
 
   const btnDashboard = `${btnBlue} py-1.5 px-3 text-xs`;
@@ -52,13 +68,12 @@ const ExpenseHistory = () => {
 
   // ログアウト処理
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout();
     navigate("/login");
   };
 
   return (
     <div className="p-10 max-w-5xl mx-auto text-left">
-
       {/* ヘッダー */}
       <div className="flex justify-between items-start mb-10">
         <div>
@@ -66,7 +81,7 @@ const ExpenseHistory = () => {
           <FormButton
             label="ダッシュボードに戻る"
             className={btnDashboard}
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
           />
         </div>
 
@@ -96,13 +111,14 @@ const ExpenseHistory = () => {
             {history.map((item) => (
               <tr key={item.detail_id} className="border-b border-gray-200">
                 <td className="p-3 text-gray-600 text-center">
-                  {item.expense_date.replaceAll('-', '/')}
+                  {item.expense_date.replaceAll("-", "/")}
                 </td>
                 <td className="p-3 text-gray-800 text-center">
                   {item.category_name}
                 </td>
                 <td className="p-3 text-gray-800 text-right pr-10">
-                  {item.amount.toLocaleString()}<span className="ml-1">円</span>
+                  {item.amount.toLocaleString()}
+                  <span className="ml-1">円</span>
                 </td>
 
                 <td className="p-3 text-gray-600 text-right pr-6">
@@ -116,12 +132,12 @@ const ExpenseHistory = () => {
                     <FormButton
                       label="編集"
                       className={btnAction}
-                      onClick={() => navigate(`/expense-edit/${item.detail_id}`)}
+                      onClick={() => navigate(`/edit/${item.detail_id}`)}
                     />
                     <FormButton
                       label="削除"
                       className={btnDelete}
-                      onClick={() => window.confirm("削除しますか？")}
+                      onClick={() => handleDelete(item.detail_id)}
                     />
                   </div>
                 </td>
@@ -133,9 +149,9 @@ const ExpenseHistory = () => {
 
       <div className="flex justify-center items-center mt-12 space-x-6">
         <FormButton
-          label='前へ'
+          label="前へ"
           className={btnPage}
-          onClick={ () => setCurrentPage(prev => prev - 1)}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
           disabled={currentPage === 1}
         />
         <span className="text-xs font-bold text-gray-600">
@@ -143,9 +159,9 @@ const ExpenseHistory = () => {
         </span>
 
         <FormButton
-          label='次へ'
+          label="次へ"
           className={btnPage}
-          onClick={ () => setCurrentPage(prev => prev + 1)}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
           disabled={currentPage === totalPage}
         />
       </div>
