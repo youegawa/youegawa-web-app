@@ -10,13 +10,10 @@ details.post("/", async (c) => {
     const body = await c.req.json();
     const { user_id, expense_date, category_name, amount, description } = body;
 
-    if (
-      !user_id ||
-      !expense_date ||
-      !category_name ||
-      amount === undefined ||
-      amount === null
-    ) {
+    if (!user_id ||
+        !expense_date ||
+        !category_name ||
+        amount == null) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
@@ -245,23 +242,14 @@ details.put("/item/:detail_id", async (c) => {
     await connection.beginTransaction();
 
     // カテゴリを検索
-    const [categories] = await connection.query<mysql.RowDataPacket[]>(
-      "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
-      [category_name, user_id],
-    );
+    await connection.query(`
+      INSERT INTO categories (category_name, user_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE category_id = LAST_INSERT_ID(category_id)
+    `, [category_name, user_id]);
 
-    let categoryId: number;
-
-    if (categories.length > 0) {
-      categoryId = categories[0].category_id;
-    } else {
-      // カテゴリが見つからなかった場合、追加
-      const [result] = await connection.query<mysql.ResultSetHeader>(
-        "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
-        [category_name, user_id],
-      );
-      categoryId = result.insertId;
-    }
+    const [idResult] = await connection.query<mysql.RowDataPacket[]>("SELECT LAST_INSERT_ID() AS category_id");
+    const categoryId = idResult[0].category_id;
 
     // details テーブルの更新
     const [result] = await connection.query<mysql.ResultSetHeader>(
