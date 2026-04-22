@@ -58,7 +58,9 @@ details.post("/", async (c) => {
     console.error("[Details Registration Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -117,7 +119,9 @@ details.get("/dashboard/:user_id", async (c) => {
     console.error("[Dashboard Data Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -154,7 +158,9 @@ details.put("/users/:user_id/budget", async (c) => {
     console.error("[Budget Update Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -208,7 +214,9 @@ details.get("/history/:user_id", async (c) => {
     console.error("[History Data Error]", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -247,7 +255,9 @@ details.get("/item/:detail_id", async (c) => {
     console.error("[Get Detail Item Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -314,7 +324,9 @@ details.put("/item/:detail_id", async (c) => {
     console.error("[Update Detail Item Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
@@ -346,7 +358,9 @@ details.delete("/item/:detail_id", async (c) => {
     console.error("[Delete Detail Item Error]:", e);
 
     const errorCode =
-      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+      e !== null && typeof e === "object" && "code" in e
+        ? (e as { code: unknown }).code
+        : undefined;
 
     if (
       errorCode === "ECONNREFUSED" ||
