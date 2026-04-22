@@ -10,11 +10,11 @@ details.post("/", async (c) => {
     const body = await c.req.json();
     const { user_id, expense_date, category_name, amount, description } = body;
 
-    if (!user_id || !expense_date || !category_name) {
+    if (!user_id || !expense_date || !category_name || amount == null) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
-    if (!amount || amount <= 0) {
+    if (amount <= 0) {
       return c.json({ message: "金額は１以上で入力してください" }, 400);
     }
 
@@ -54,10 +54,16 @@ details.post("/", async (c) => {
     } finally {
       connection.release();
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Details Registration Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "登録に失敗しました。" }, 500);
@@ -107,10 +113,16 @@ details.get("/dashboard/:user_id", async (c) => {
       },
       200,
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Dashboard Data Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "データの取得に失敗しました。" }, 500);
@@ -138,8 +150,18 @@ details.put("/users/:user_id/budget", async (c) => {
     }
 
     return c.json({ message: "予算を更新しました" }, 200);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Budget Update Error]:", e);
+
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
     return c.json({ message: "予算の更新に失敗しました" }, 500);
   }
 });
@@ -182,10 +204,16 @@ details.get("/history/:user_id", async (c) => {
       },
       200,
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[History Data Error]", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません" }, 503);
     }
     return c.json({ message: "履歴の取得に失敗しました" }, 500);
@@ -215,17 +243,23 @@ details.get("/item/:detail_id", async (c) => {
     }
 
     return c.json(rows[0], 200);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Get Detail Item Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
-    return c.json({ message: "データの取得に失敗しました。" }, 500);
+    return c.json({ message: "データの取得に失敗しました" }, 500);
   }
 });
 
-// PUT /api/details/item/:detail_id - 支出明細の更新
+// PUT /api/details/item/:detail_id - 支出明細の更新（保存した時）
 details.put("/item/:detail_id", async (c) => {
   const detailId = c.req.param("detail_id");
   const body = await c.req.json();
@@ -243,23 +277,19 @@ details.put("/item/:detail_id", async (c) => {
     await connection.beginTransaction();
 
     // カテゴリを検索
-    const [categories] = await connection.query<mysql.RowDataPacket[]>(
-      "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
+    await connection.query(
+      `
+      INSERT INTO categories (category_name, user_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE category_id = LAST_INSERT_ID(category_id)
+    `,
       [category_name, user_id],
     );
 
-    let categoryId: number;
-
-    if (categories.length > 0) {
-      categoryId = categories[0].category_id;
-    } else {
-      // カテゴリが見つからなかった場合、追加
-      const [result] = await connection.query<mysql.ResultSetHeader>(
-        "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
-        [category_name, user_id],
-      );
-      categoryId = result.insertId;
-    }
+    const [idResult] = await connection.query<mysql.RowDataPacket[]>(
+      "SELECT LAST_INSERT_ID() AS category_id",
+    );
+    const categoryId = idResult[0].category_id;
 
     // details テーブルの更新
     const [result] = await connection.query<mysql.ResultSetHeader>(
@@ -279,11 +309,17 @@ details.put("/item/:detail_id", async (c) => {
 
     await connection.commit();
     return c.json({ message: "支出明細を更新しました" }, 200);
-  } catch (e: any) {
+  } catch (e: unknown) {
     await connection.rollback();
     console.error("[Update Detail Item Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません" }, 503);
     }
     return c.json({ message: "更新に失敗しました" }, 500);
@@ -306,10 +342,16 @@ details.delete("/item/:detail_id", async (c) => {
     }
 
     return c.json({ message: "明細を削除しました" }, 200);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Delete Detail Item Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    const errorCode =
+      e && typeof e === "object" && "code" in e ? (e as any).code : undefined;
+
+    if (
+      errorCode === "ECONNREFUSED" ||
+      errorCode === "PROTOCOL_CONNECTION_LOST"
+    ) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "削除に失敗しました。" }, 500);
