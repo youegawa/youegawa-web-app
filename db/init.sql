@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS categories (
   user_id        INT          NULL,
   category_name  VARCHAR(255) NOT NULL,
   PRIMARY KEY (category_id),
+  // ユーザーとカテゴリの組み合わせを一意に制御するためのユニークキー
+  UNIQUE KEY unique_user_category (user_id, category_name),
+
   FOREIGN KEY (user_id)     REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -30,7 +33,7 @@ CREATE TABLE IF NOT EXISTS details (
   amount         INT          NOT NULL,
   description    VARCHAR(255) NOT NULL,
   PRIMARY KEY (detail_id),
-  FOREIGN KEY (user_id)     REFERENCES users(user_id),
+  FOREIGN KEY (user_id)     REFERENCES users(user_id)
   FOREIGN KEY (category_id) REFERENCES categories(category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
