@@ -22,7 +22,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = () => setIsAuthenticated(true);
 
-  const logout = () => setIsAuthenticated(false);
+  const logout = () => {
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+  };
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
