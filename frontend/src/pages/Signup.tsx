@@ -44,8 +44,12 @@ const Signup = () => {
         alert("登録が完了しました");
         navigate("/dashboard");
       }
-    } catch (error: any) {
-      setApiError(error.message || "登録に失敗しました。");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError("予期せぬエラーが発生しました");
+      }
     }
   };
 
