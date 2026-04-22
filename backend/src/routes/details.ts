@@ -10,13 +10,10 @@ details.post("/", async (c) => {
     const body = await c.req.json();
     const { user_id, expense_date, category_name, amount, description } = body;
 
-    if (
-      !user_id ||
-      !expense_date ||
-      !category_name ||
-      amount === undefined ||
-      amount === null
-    ) {
+    if (!user_id ||
+        !expense_date ||
+        !category_name ||
+        amount == null) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
