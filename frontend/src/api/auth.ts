@@ -1,6 +1,5 @@
 import type { User } from "../types/auth";
 
-// const BASE_URL = "/api/auth";
 const BASE_URL = "/api/auth";
 
 // ログイン時
@@ -20,7 +19,10 @@ export const login = async (
 
   // レスポンスチェック
   if (!res.ok) {
-    throw new Error(`Failed to login: ${res.status}`);
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || `ログインに失敗しました: ${res.status}`,
+    );
   }
 
   // JSONデータとして返却
@@ -48,7 +50,10 @@ export const signup = async (
 
   // レスポンスチェック
   if (!res.ok) {
-    throw new Error(`Failed to sign-up: ${res.status}`);
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || `エラーが発生しました (${res.status})`,
+    );
   }
 
   // JSONデータとして返却
