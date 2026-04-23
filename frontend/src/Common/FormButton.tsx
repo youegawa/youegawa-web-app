@@ -1,14 +1,26 @@
-// 再作成用のコード例
+// 再作成用のコード
 type Props = {
   type?: "button" | "submit" | "reset";
   label: string;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
 };
 
-const FormButton = ({ type = "button", label, className, onClick }: Props) => {
+const FormButton = ({
+  type = "button",
+  label,
+  className,
+  onClick,
+  disabled,
+}: Props) => {
   return (
-    <button type={type} className={className} onClick={onClick}>
+    <button
+      type={type}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {label}
     </button>
   );
