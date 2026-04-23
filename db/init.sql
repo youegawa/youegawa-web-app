@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS details (
   amount         INT          NOT NULL,
   description    VARCHAR(255) NOT NULL,
   PRIMARY KEY (detail_id),
-  FOREIGN KEY (user_id)     REFERENCES users(user_id)
+  FOREIGN KEY (user_id)     REFERENCES users(user_id),
   FOREIGN KEY (category_id) REFERENCES categories(category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
