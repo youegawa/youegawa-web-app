@@ -185,11 +185,9 @@ const Dashboard = () => {
                 className={modalBtnClass}
                 onClick={() => setIsModalOpen(false)}
               >
-                {" "}
                 キャンセル
               </button>
               <button className={modalBtnClass} onClick={handleSaveBudget}>
-                {" "}
                 保存
               </button>
             </div>
