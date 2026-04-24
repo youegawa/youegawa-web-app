@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import FormButton from "../Common/FormButton";
 import { signup } from "../api/auth";
 
+
 // 型定義
 type SignupFormValues = {
   userName: string;
@@ -34,8 +35,12 @@ const Signup = () => {
         alert("登録が完了しました！ログインしてください。");
         navigate("/login");
       }
-    } catch (error) {
-      setApiError("登録に失敗しました。");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError("登録に失敗しました。");
+      }
     }
   };
 
