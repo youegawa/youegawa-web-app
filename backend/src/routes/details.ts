@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import mysql from "mysql2/promise";
 import pool from "../db/index.js";
-
+import { handleRouteError } from "../db/errors.js";
 const details = new Hono();
 
 // POST /api/details - 支出の登録
@@ -57,13 +57,9 @@ details.post("/", async (c) => {
     } finally {
       connection.release();
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Details Registration Error]:", e);
-
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
-      return c.json({ message: "データベースに接続できません。" }, 503);
-    }
-    return c.json({ message: "登録に失敗しました。" }, 500);
+    return handleRouteError(c, e, "登録に失敗しました。");
   }
 });
 
@@ -110,13 +106,9 @@ details.get("/dashboard/:user_id", async (c) => {
       },
       200,
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Dashboard Data Error]:", e);
-
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
-      return c.json({ message: "データベースに接続できません。" }, 503);
-    }
-    return c.json({ message: "データの取得に失敗しました。" }, 500);
+    return handleRouteError(c, e, "データの取得に失敗しました。");
   }
 });
 
@@ -141,9 +133,9 @@ details.put("/users/:user_id/budget", async (c) => {
     }
 
     return c.json({ message: "予算を更新しました" }, 200);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Budget Update Error]:", e);
-    return c.json({ message: "予算の更新に失敗しました" }, 500);
+    return handleRouteError(c, e, "予算の更新に失敗しました");
   }
 });
 
@@ -185,13 +177,9 @@ details.get("/history/:user_id", async (c) => {
       },
       200,
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[History Data Error]", e);
-
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
-      return c.json({ message: "データベースに接続できません" }, 503);
-    }
-    return c.json({ message: "履歴の取得に失敗しました" }, 500);
+    return handleRouteError(c, e, "履歴の取得に失敗しました");
   }
 });
 
@@ -218,9 +206,9 @@ details.get("/item/:detail_id", async (c) => {
     }
 
     return c.json(rows[0], 200);
-  } catch (e) {
-    console.error(e);
-    return c.json({ message: "データの取得に失敗しました" }, 500);
+  } catch (e: unknown) {
+    console.error("[Get Detail Item Error]:", e);
+    return handleRouteError(c, e, "データの取得に失敗しました");
   }
 });
 
@@ -269,12 +257,10 @@ details.put("/item/:detail_id", async (c) => {
 
     await connection.commit();
     return c.json({ message: "支出明細を更新しました" }, 200);
-  } catch (e) {
+  } catch (e:unknown) {
     await connection.rollback();
-    console.error(e);
-    return c.json({ message: "更新に失敗しました" }, 500);
-  } finally {
-    connection.release();
+    console.error("[Update Detail Item Error]:", e);
+    return handleRouteError(c, e, "更新に失敗しました");
   }
 });
 
