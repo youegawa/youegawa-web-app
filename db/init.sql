@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS categories (
   user_id        INT          NULL,
   category_name  VARCHAR(255) NOT NULL,
   PRIMARY KEY (category_id),
+  UNIQUE KEY unique_user_category (user_id, category_name),
+
   FOREIGN KEY (user_id)     REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
