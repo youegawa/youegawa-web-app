@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { createDetail, CreateDetailRequest } from "../api/details";
 import { useAuth } from "../Common/AuthContext";
 import { User } from "../types/auth";
+import { dateValidation, categoryValidation, amountValidation, descriptionValidation } from "../Common/validationRules";
+import FormField from "../Common/FormField";
+import { getPrimaryBtnClass, getSecondaryBtnClass,getButtonGroupClass } from "../Common/styleConstants";
 
 // 型定義
 type InputFormValues = {
@@ -44,15 +47,6 @@ const ExpenseInput = () => {
     logout();
     navigate("/login");
   };
-
-  // スタイル定義
-  const labelClass = "w-32 text-gray-700";
-  const btnClass =
-    "bg-blue-500 text-black py-2 px-6 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
-  const inputBase =
-    "border-2 py-1 px-3 rounded-md focus:ring-2 focus:ring-blue-500 outline-none w-72 text-sm text-right";
-  const logoutBtnClass =
-    "ml-4 bg-blue-500 text-white py-1 px-3 rounded text-xs font-bold hover:bg-blue-600 transition-all shadow-sm";
 
   const goToDashboard = () => navigate("/dashboard");
 
@@ -96,7 +90,7 @@ const ExpenseInput = () => {
         <p className="text-sm mb-2">名前：{user?.user_name} 様</p>
         <FormButton
           label="ログアウト"
-          className={logoutBtnClass}
+          className={getSecondaryBtnClass()}
           onClick={handleLogout}
         />
       </div>
@@ -105,108 +99,48 @@ const ExpenseInput = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {/* 日付入力欄 */}
-        <div className="flex flex-col">
-          <div className="flex items-center">
-            <label className={labelClass}>日付</label>
-            <input
-              className={inputBase}
-              type="date"
-              max={today}
-              {...register("expense_date", {
-                required: "日付を入力してください",
-              })}
-            />
-          </div>
-          {/* エラーメッセージ表示の定義 */}
-          <div className="h-4 ml-32">
-            {errors.expense_date && (
-              <span className="text-red-500 text-xs">
-                {errors.expense_date.message}
-              </span>
-            )}
-          </div>
-        </div>
+        <FormField
+          label="日付"
+          type="date"
+          register={register("expense_date", dateValidation)}
+          error={errors.expense_date}
+          max={today}
+        />
 
         {/* カテゴリ入力欄 */}
-        <div className="flex flex-col">
-          <div className="flex items-center">
-            <label className={labelClass}>カテゴリ</label>
-            <input
-              className={`${inputBase} text-left`}
-              type="text"
-              {...register("category_name", {
-                required: "カテゴリを入力してください",
-              })}
-            />
-          </div>
-          {/* エラーメッセージ表示の定義 */}
-          <div className="h-4 ml-32">
-            {errors.category_name && (
-              <span className="text-red-500 text-xs">
-                {errors.category_name.message}
-              </span>
-            )}
-          </div>
-        </div>
+        <FormField
+          label="カテゴリ"
+          type="text"
+          register={register("category_name", categoryValidation)}
+          error={errors.category_name}
+        />
 
         {/* 金額入力欄 */}
-        <div className="flex flex-col">
-          <div className="flex items-center">
-            <label className={labelClass}>金額</label>
-            <input
-              className={inputBase}
-              type="number"
-              min="1"
-              {...register("amount", {
-                required: "金額を入力してください",
-                min: { value: 1, message: "１円以上の金額を入力して下さい" },
-              })}
-            />
-            <span className="ml-2 text-sm">円</span>
-          </div>
-          {/* エラーメッセージ表示の定義 */}
-          <div className="h-4 ml-32">
-            {errors.amount && (
-              <span className="text-red-500 text-xs">
-                {errors.amount.message}
-              </span>
-            )}
-          </div>
-        </div>
+        <FormField
+          label="金額"
+          type="number"
+          register={register("amount", amountValidation)}
+          error={errors.amount}
+          suffix="円"
+        />
 
         {/* 費用詳細欄 */}
-        <div className="flex flex-col">
-          <div className="flex items-start">
-            <label className={`${labelClass} pt-1`}>費用詳細</label>
-            <textarea
-              className={`${inputBase} text-left p-2 h-auto`}
-              rows={2}
-              {...register("description", {
-                maxLength: {
-                  value: 20,
-                  message: "20文字以内で入力してください",
-                },
-              })}
-            />
-          </div>
-          {/* エラーメッセージ表示の定義 */}
-          <div className="h-4 ml-32">
-            {errors.description && (
-              <span className="text-red-500 text-xs">
-                {errors.description.message}
-              </span>
-            )}
-          </div>
-        </div>
+        <FormField
+          label="費用詳細"
+          type="text"
+          register={register("description", descriptionValidation)}
+          error={errors.description}
+          isTextArea={true}
+        />
 
-        <div className="ml-32 w-72 flex justify-center space-x-4 mt-8">
+        <div className={getButtonGroupClass()}>
           <FormButton
             type="button"
             label="キャンセル"
-            className={btnClass}
+            className={getPrimaryBtnClass()}
             onClick={goToDashboard}
           />
-          <FormButton type="submit" label="確定" className={btnClass} />
+          <FormButton type="submit" label="確定" className={getPrimaryBtnClass()} />
         </div>
       </form>
     </div>
