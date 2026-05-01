@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.stubGlobal("fetch", vi.fn());
 
 // テスト用のデータ
-const mockTodos: Todo[] = [
+const testTodos: Todo[] = [
   {
     id: 1,
     title: "テスト1",
@@ -33,12 +33,13 @@ describe("getTodos()", () => {
   it("正常系 -Todo一覧の取得", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockTodos,
+      json: async () => testTodos,
     } as Response);
 
     const result = await getTodos();
 
-    expect(result).toEqual(mockTodos);
+    expect(result).toEqual(testTodos);
+    expect(fetch).toHaveBeenCalledWith("/api/todos");
   });
 
   it("異常系 -サーバーエラー(500)", async () => {

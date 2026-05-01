@@ -5,7 +5,7 @@ import { createDetail, getDashboardData, updateMonthlyBudget } from './../../api
 vi.stubGlobal("fetch", vi.fn());
 
 // テスト用のデータ
-const mockDetailInput = {
+const testDetailInput = {
   user_id: 1,
   expense_date: "2026-04-01",
   category_name: "食費",
@@ -26,12 +26,13 @@ describe("createDetail()", () => {
       json: async () => ({ message: "支出を登録しました" }),
     } as Response);
 
-    const result = await createDetail(mockDetailInput);
+    const result = await createDetail(testDetailInput);
 
-    expect(fetch).toHaveBeenCalledWith("/api/details", expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith("/api/details", expect.
+    objectContaining({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(mockDetailInput),
+      body: JSON.stringify(testDetailInput),
     }));
 
     expect(result.message).toBe("支出を登録しました");
@@ -43,7 +44,7 @@ describe("createDetail()", () => {
       status: 400,
     } as Response);
 
-    await expect(createDetail(mockDetailInput)).rejects.toThrow();
+    await expect(createDetail(testDetailInput)).rejects.toThrow();
   });
 });
 
