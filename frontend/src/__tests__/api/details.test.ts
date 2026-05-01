@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createDetail, getDashboardData, updateMonthlyBudget } from './../../api/details';
 
-// fetch をモックする
+// fetch をスタブ化する
 vi.stubGlobal("fetch", vi.fn());
 
+// テスト用のデータ
 const mockDetailInput = {
   user_id: 1,
   expense_date: "2026-04-01",
@@ -18,6 +19,7 @@ beforeEach(() => {
 
 // createDetail() のテスト
 describe("createDetail()", () => {
+
   it("正常系 -支出明細の登録", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
@@ -34,6 +36,7 @@ describe("createDetail()", () => {
 
     expect(result.message).toBe("支出を登録しました");
   });
+
   it("異常系 -登録失敗(400)", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
@@ -46,6 +49,7 @@ describe("createDetail()", () => {
 
 // getDashboardData() のテスト
 describe("getDashboardData()", () => {
+
   it("正常系 -ダッシュボードデータの取得", async () => {
     const userId = 1;
     const mockDashboardData = {
@@ -83,6 +87,7 @@ describe("getDashboardData()", () => {
 
 // updateMonthlyBudget() のテスト
 describe("updateMonthlyBudget()", () => {
+
   it("正常系 -予算の更新", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
@@ -97,6 +102,7 @@ describe("updateMonthlyBudget()", () => {
       body: JSON.stringify({ monthly_budget: 80000 }),
     }));
   });
+
   it("異常系 -更新失敗(400)", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,

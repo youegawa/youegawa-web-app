@@ -2,9 +2,10 @@ import { getTodos, createTodo, updateTodo } from './../../api/todos';
 import type { Todo } from "../../types/todo";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// fetch をモックする
+// fetch をスタブ化する
 vi.stubGlobal("fetch", vi.fn());
 
+// テスト用のデータ
 const mockTodos: Todo[] = [
   {
     id: 1,
@@ -28,6 +29,7 @@ beforeEach(() => {
 
 // getTodos() のテスト
 describe("getTodos()", () => {
+
   it("正常系 -Todo一覧の取得", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
@@ -36,10 +38,9 @@ describe("getTodos()", () => {
 
     const result = await getTodos();
 
-    expect(fetch).toHaveBeenCalledWith("/api/todos");
-    expect(result).toHaveLength(2);
-    expect(result[0].title).toBe("テスト1");
+    expect(result).toEqual(mockTodos);
   });
+
   it("異常系 -サーバーエラー(500)", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
@@ -52,6 +53,7 @@ describe("getTodos()", () => {
 
 // createTodo() のテスト
 describe("createTodo()", () => {
+
   it("正常系 -Todoの作成", async () => {
     const newTodo: Todo = {
       id: 3,
@@ -89,6 +91,7 @@ describe("createTodo()", () => {
 
 //　updateTodo() のテスト
 describe("updateTodo()", () => {
+
   it("正常系 -Todo更新", async () => {
     const updateResult: Todo = {
       id: 1,
@@ -99,9 +102,9 @@ describe("updateTodo()", () => {
     };
 
     vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => updateResult,
-        } as Response);
+      ok: true,
+      json: async () => updateResult,
+      } as Response);
 
     const result = await updateTodo(1, { title: "更新後タイトル", completed: true });
 
@@ -110,6 +113,7 @@ describe("updateTodo()", () => {
       body: JSON.stringify({ title: "更新後タイトル", completed: true }),
     }));
   });
+
   it("異常系 -対象が見つからない(404)", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
