@@ -99,7 +99,7 @@ describe("POST /api/details", () => {
     expect(body.message).toBe("必須項目が不足しています");
   });
 
-  it("異常系 - amoutが 0以下のとき 400 を返す", async () => {
+  it("異常系 - amountが 0以下のとき 400 を返す", async () => {
     const res = await app.request("/api/details", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,7 +120,7 @@ describe("POST /api/details", () => {
   it("異常系 - DB エラー発生時に rollback が呼ばれる", async () => {
     vi.mocked(mockConnection.query)
       .mockResolvedValueOnce([[{ category_id: 1 }], []])
-      .mockRejectedValue(new Error("DB Error"));
+      .mockRejectedValueOnce(new Error("DB Error"));
 
     const res = await app.request("/api/details", {
       method: "POST",
