@@ -8,8 +8,10 @@ vi.mock("../../db/index.js", () => ({
   },
 }));
 
+
 import pool from "../../db/index.js";
 import details from "../../routes/details.js";
+import { PoolConnection } from "mysql2/promise";
 
 // getConnection モックのヘルパー関数
 const mockConnection = {
@@ -18,15 +20,15 @@ const mockConnection = {
   commit: vi.fn(),
   rollback: vi.fn(),
   release: vi.fn(),
-};
+} as unknown as  PoolConnection;
 
 const app = new Hono();
 app.route("/api/details", details);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // 各テストの beforeEach で設定する
-  vi.mocked(pool.getConnection).mockResolvedValue(mockConnection as never);
+
+  vi.mocked(pool.getConnection).mockResolvedValue(mockConnection as PoolConnection);
 });
 
 // POST /api/details のテストケース
@@ -81,7 +83,7 @@ describe("POST /api/details", () => {
     expect(mockConnection.commit).toHaveBeenCalled();
   });
 
-  it("異常系 - 必須項目が欠けているとき 400 を返す", async () => {
+  it("異常系 - 必須項目（ユーザーID）が欠けているとき 400 を返す", async () => {
     const res = await app.request("/api/details", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,6 +91,60 @@ describe("POST /api/details", () => {
         expense_date: "2026-04-01",
         category_name: "食費",
         amount: 1000,
+        description: "ランチ",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+
+    const body = await res.json();
+    expect(body.message).toBe("必須項目が不足しています");
+  });
+
+  it("異常系 - 必須項目（日付）が欠けているとき 400 を返す", async () => {
+    const res = await app.request("/api/details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: 1,
+        category_name: "食費",
+        amount: 1000,
+        description: "ランチ",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+
+    const body = await res.json();
+    expect(body.message).toBe("必須項目が不足しています");
+  });
+
+  it("異常系 - 必須項目（カテゴリ）が欠けているとき 400 を返す", async () => {
+    const res = await app.request("/api/details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: 1,
+        expense_date: "2026-04-01",
+        amount: 1000,
+        description: "ランチ",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+
+    const body = await res.json();
+    expect(body.message).toBe("必須項目が不足しています");
+  });
+
+  it("異常系 - 必須項目（金額）が欠けているとき 400 を返す", async () => {
+    const res = await app.request("/api/details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: 1,
+        expense_date: "2026-04-01",
+        category_name: "食費",
         description: "ランチ",
       }),
     });
@@ -203,6 +259,7 @@ describe("PUT /api/details/users/:user_id/budget", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.message).toBe("予算を更新しました");
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining("UPDATE"),[80000,"1"]);
   });
 
   it("異常系 - monthly_budget が負の値のとき 400 を返す", async () => {
