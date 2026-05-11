@@ -32,7 +32,7 @@ test("テストケース２：バリデーション - 日付が未入力のと�
   await expect(page.getByText("日付を入力してください")).toBeVisible();
 });
 
-test("テストケース３：バリデーション - - カテゴリが未入力のとき、エラーが表示される", async ({ page }) => {
+test("テストケース３：バリデーション - カテゴリが未入力のとき、エラーが表示される", async ({ page }) => {
 
   await page.locator('input[type="date"]').fill("2026-04-01");
   await page.locator('input[type="number"]').fill("1500");
