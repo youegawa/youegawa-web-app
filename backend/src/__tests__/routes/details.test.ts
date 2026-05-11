@@ -28,7 +28,7 @@ app.route("/api/details", details);
 beforeEach(() => {
   vi.clearAllMocks();
 
-  vi.mocked(pool.getConnection).mockResolvedValue(mockConnection as PoolConnection);
+  vi.mocked(pool.getConnection).mockResolvedValue(mockConnection);
 });
 
 // POST /api/details のテストケース
