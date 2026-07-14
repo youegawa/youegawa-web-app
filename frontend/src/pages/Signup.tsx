@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import FormButton from "../Common/FormButton";
 import { signup } from "../api/auth";
 
+
 // 型定義
 type SignupFormValues = {
   userName: string;
@@ -34,8 +35,12 @@ const Signup = () => {
         alert("登録が完了しました！ログインしてください。");
         navigate("/login");
       }
-    } catch (error) {
-      setApiError("登録に失敗しました。");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError("登録に失敗しました。");
+      }
     }
   };
 
@@ -120,7 +125,8 @@ const Signup = () => {
               min="0"
               className={`${inputBase} ${errors.budget ? 'border-red-500' : 'border-gray-400'}`}
               {...register("budget", {
-                valueAsNumber: true,
+                setValueAs: (value) => (value === "" ? 0 : Number(value)),
+                validate: (v) => Number.isFinite(v) || "有効な金額を入力して下さい",
                 min: { value: 0, message: "0円以上の金額を入力して下さい" }
               })}
             />
