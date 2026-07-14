@@ -9,12 +9,21 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const context = useContext(AuthContext);
 
+  const hasStoredUser = (() => {
+    try {
+      return localStorage.getItem("user") !== null;
+    } catch {
+      return false;
+    }
+  })();
+
   if (!context) {
-    return <Navigate to="/login" replace />;
+    return hasStoredUser ? children : <Navigate to="/login" replace />;
   }
+
   const { isAuthenticated } = context;
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !hasStoredUser) {
     return <Navigate to="/login" replace />;
   }
 
