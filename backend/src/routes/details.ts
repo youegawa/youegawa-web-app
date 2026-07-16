@@ -4,6 +4,10 @@ import pool from "../db/index.js";
 
 const details = new Hono();
 
+function isDbError(e: unknown): e is { code: string } {
+  return typeof e === "object" && e !== null && "code" in e;
+}
+
 // POST /api/details - 支出の登録
 details.post("/", async (c) => {
   try {
@@ -60,10 +64,10 @@ details.post("/", async (c) => {
       connection.release();
     }
 
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Details Registration Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "登録に失敗しました。" }, 500);
@@ -110,10 +114,10 @@ details.get("/dashboard/:user_id", async (c) => {
       recentHistory: historyRows
     }, 200);
 
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Dashboard Data Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST") {
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
       return c.json({ message: "データベースに接続できません。" }, 503);
     }
     return c.json({ message: "データの取得に失敗しました。" }, 500);
@@ -142,7 +146,7 @@ details.put("/users/:user_id/budget", async (c) => {
 
     return c.json({ message: "予算を更新しました" }, 200);
 
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Budget Update Error]:", e);
     return c.json({ message: "予算の更新に失敗しました" }, 500);
   }
@@ -183,10 +187,10 @@ details.get("/history/:user_id", async (c) => {
       totalPages: Math.ceil(totalCount / limit)
     }, 200);
 
-  } catch (e: any) {
-    console.error("[History Data Error]", e);
+  } catch (e: unknown) {
+    console.error("[History Data Error]:", e);
 
-    if (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST"){
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
       return c.json({ message: "データベースに接続できません" }, 503);
     }
     return c.json({ message: "履歴の取得に失敗しました"}, 500);
