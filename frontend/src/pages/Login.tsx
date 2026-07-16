@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import FormButton from '../Common/FormButton';
-import { login } from '../api/auth';
+import { login as apilogin } from '../api/auth';
+import { useAuth } from '../Common/AuthContext';
 
 // 型定義
 type LoginFormValues = {
@@ -12,6 +13,7 @@ type LoginFormValues = {
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [apiError, setApiError] = useState("");
 
   const {
@@ -25,9 +27,10 @@ const Login = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setApiError("");
     try {
-      const response = await login(data.userEmail, data.userPassword);
+      const response = await apilogin(data.userEmail, data.userPassword);
       if (response.user) {
         localStorage.setItem("user", JSON.stringify(response.user));
+        login();
         navigate("/dashboard");
       }
     } catch (error) {
