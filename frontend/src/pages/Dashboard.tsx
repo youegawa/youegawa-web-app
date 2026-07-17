@@ -29,7 +29,6 @@ const Dashboard = () => {
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      setIsModalOpen(false);
       setApiError("");
     } catch (error) {
       setApiError("予算の更新に失敗しました");
@@ -117,7 +116,7 @@ const Dashboard = () => {
         <div className="flex items-center">
           <span className={rowLabel}>残高</span>
           <span
-            className={`${rowValue} ${balance < 0 ? 'text-red-500' : 'text-gray-800'}`}
+            className={`${rowValue} ${balance < 0 ? "text-red-500" : "text-gray-800"}`}
           >
             {balance.toLocaleString()}円
           </span>
