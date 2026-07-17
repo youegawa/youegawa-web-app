@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FormButton from "../Common/FormButton";
 import { useNavigate } from "react-router-dom";
 import { createDetail, CreateDetailRequest } from "../api/details";
+import { useAuth } from "../Common/AuthContext";
+import { User } from "../types/auth";
 
 // 型定義
 type InputFormValues = {
@@ -13,6 +16,8 @@ type InputFormValues = {
 
 const ExpenseInput = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const today = new Date().toISOString().split("T")[0];
   const {
     register,
@@ -26,6 +31,19 @@ const ExpenseInput = () => {
       description: "",
     },
   });
+
+  // 画面起動時
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   // スタイル定義
   const labelClass = "w-32 text-gray-700";
@@ -72,8 +90,18 @@ const ExpenseInput = () => {
   };
 
   return (
-    <div className='pl-10 pt-10 max-w-2xl'>
-      <h1 className='text-3xl font-bold text-gray-800 mb-8'>支出入力</h1>
+   <div className="pl-10 pt-10 pb-20 max-w-4xl relative">
+      {/* ヘッダー */}
+      <div className="absolute top-10 right-10 text-right">
+        <p className="text-sm mb-2">名前：{user?.user_name} 様</p>
+        <FormButton
+          label="ログアウト"
+          className={logoutBtnClass}
+          onClick={handleLogout}
+        />
+      </div>
+
+      <h1 className="text-3xl font-bold text-gray-800 mb-12">支出入力</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
 
