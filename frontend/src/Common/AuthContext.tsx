@@ -13,9 +13,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return Boolean(localStorage.getItem("user"));
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = () => setIsAuthenticated(true);
 
@@ -31,12 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // Fail-safe to avoid crashing the whole app if provider wiring is temporarily broken.
-    return {
-      isAuthenticated: Boolean(localStorage.getItem("user")),
-      login: () => {},
-      logout: () => {},
-    };
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
