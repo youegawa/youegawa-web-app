@@ -15,7 +15,7 @@ export interface DashboardDataResponse {
     amount: number;
     description: string;
   }[];
-}
+};
 
 // 全履歴取得用の型定義
 export type HistoryItem = Omit<Detail, "category_id"> & {
@@ -26,7 +26,7 @@ export interface HistoryResponse {
   history: HistoryItem[];
   totalCount: number;
   totalPages: number;
-}
+};
 
 const BASE_URL = "/api/details";
 

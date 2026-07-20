@@ -74,6 +74,7 @@ const ExpenseHistory = () => {
 
   return (
     <div className="p-10 max-w-5xl mx-auto text-left">
+
       {/* ヘッダー */}
       <div className="flex justify-between items-start mb-10">
         <div>
@@ -117,8 +118,7 @@ const ExpenseHistory = () => {
                   {item.category_name}
                 </td>
                 <td className="p-3 text-gray-800 text-right pr-10">
-                  {item.amount.toLocaleString()}
-                  <span className="ml-1">円</span>
+                  {item.amount.toLocaleString()}<span className="ml-1">円</span>
                 </td>
 
                 <td className="p-3 text-gray-600 text-right pr-6">

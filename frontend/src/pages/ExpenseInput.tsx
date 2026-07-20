@@ -156,7 +156,7 @@ const ExpenseInput = () => {
             <input
               className={inputBase}
               type="number"
-              min="0"
+              min="1"
               {...register("amount", {
                 required: "金額を入力してください",
                 min: { value: 1, message: "１円以上の金額を入力して下さい" },
