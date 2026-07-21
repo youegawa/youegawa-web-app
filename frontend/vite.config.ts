@@ -11,7 +11,6 @@ export default defineConfig({
       // /api/* へのリクエストをバックエンドサーバーへ転送する
       "/api": {
         target: "http://backend:3000",
-        // target: "http://localhost:3000",
         changeOrigin: true,
       },
     },
