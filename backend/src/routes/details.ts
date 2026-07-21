@@ -1,8 +1,12 @@
 import { Hono } from "hono";
 import mysql from "mysql2/promise";
 import pool from "../db/index.js";
-import { handleRouteError } from "../db/errors.js";
+
 const details = new Hono();
+
+function isDbError(e: unknown): e is { code: string } {
+  return typeof e === "object" && e !== null && "code" in e;
+}
 
 // POST /api/details - 支出の登録
 details.post("/", async (c) => {
@@ -13,7 +17,7 @@ details.post("/", async (c) => {
     if (!user_id ||
         !expense_date ||
         !category_name ||
-        amount == null) {
+        !amount) {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
@@ -51,15 +55,21 @@ details.post("/", async (c) => {
 
       await connection.commit();
       return c.json({ message: "支出を登録しました" }, 201);
+
     } catch (dbError) {
       await connection.rollback();
       throw dbError;
     } finally {
       connection.release();
     }
+
   } catch (e: unknown) {
     console.error("[Details Registration Error]:", e);
-    return handleRouteError(c, e, "登録に失敗しました。");
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "登録に失敗しました。" }, 500);
   }
 });
 
@@ -102,13 +112,17 @@ details.get("/dashboard/:user_id", async (c) => {
       {
         message: "ダッシュボードデータの取得に成功しました",
         monthlyTotal,
-        recentHistory: historyRows,
+        recentHistory: historyRows
       },
-      200,
+      200
     );
   } catch (e: unknown) {
     console.error("[Dashboard Data Error]:", e);
-    return handleRouteError(c, e, "データの取得に失敗しました。");
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "データの取得に失敗しました。" }, 500);
   }
 });
 
@@ -133,9 +147,10 @@ details.put("/users/:user_id/budget", async (c) => {
     }
 
     return c.json({ message: "予算を更新しました" }, 200);
+
   } catch (e: unknown) {
     console.error("[Budget Update Error]:", e);
-    return handleRouteError(c, e, "予算の更新に失敗しました");
+    return c.json({ message: "予算の更新に失敗しました" }, 500);
   }
 });
 
@@ -165,102 +180,23 @@ details.get("/history/:user_id", async (c) => {
 
     const [[{ totalCount }]] = await pool.query<mysql.RowDataPacket[]>(
       `SELECT Count(*) as totalCount FROM details WHERE user_id = ?`,
-      [userId],
-    );
-
-    return c.json(
-      {
-        message: "履歴データの取得に成功しました",
-        history: rows,
-        totalCount: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-      200,
-    );
-  } catch (e: unknown) {
-    console.error("[History Data Error]", e);
-    return handleRouteError(c, e, "履歴の取得に失敗しました");
-  }
-});
-
-// GET /api/details/item/:detail_id 支出編集画面での指定した明細
-details.get("/item/:detail_id", async (c) => {
-  try {
-    const detailId = c.req.param("detail_id");
-
-    const [rows] = await pool.query<mysql.RowDataPacket[]>(
-      `SELECT
-        d.detail_id,
-        DATE_FORMAT(d.expense_date, '%Y-%m-%d') AS expense_date,
-        c.category_name,
-        d.amount,
-        d.description
-      FROM details d
-      JOIN categories c ON d.category_id = c.category_id
-      WHERE d.detail_id = ?`,
-      [detailId],
-    );
-
-    if (rows.length === 0) {
-      return c.json({ message: "データが見つかりません" }, 404);
-    }
-
-    return c.json(rows[0], 200);
-  } catch (e: unknown) {
-    console.error("[Get Detail Item Error]:", e);
-    return handleRouteError(c, e, "データの取得に失敗しました");
-  }
-});
-
-// PUT /api/details/item/:detail_id - 支出明細の更新（保存した時）
-details.put("/item/:detail_id", async (c) => {
-  const detailId = c.req.param("detail_id");
-  const body = await c.req.json();
-  const { user_id, expense_date, category_name, amount, description } = body;
-
-  if (!expense_date || !category_name) {
-    return c.json({ message: "必須項目が不足しています" }, 400);
-  }
-  if (!amount || amount <= 0) {
-    return c.json({ message: "金額は1以上で入力してください" }, 400);
-  }
-
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-
-    // カテゴリを検索
-    await connection.query(`
-      INSERT INTO categories (category_name, user_id)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE category_id = LAST_INSERT_ID(category_id)
-    `, [category_name, user_id]);
-
-    const [idResult] = await connection.query<mysql.RowDataPacket[]>("SELECT LAST_INSERT_ID() AS category_id");
-    const categoryId = idResult[0].category_id;
-
-    // details テーブルの更新
-    const [result] = await connection.query<mysql.ResultSetHeader>(
-      `UPDATE details
-       SET category_id = ?, expense_date = ?, amount = ?, description = ?
-       WHERE detail_id = ? AND user_id = ?`,
-      [categoryId, expense_date, amount, description ?? "", detailId, user_id],
-    );
-
-    if (result.affectedRows === 0) {
-      await connection.rollback();
-      return c.json(
-        { message: "更新対象が見つからないか、権限がありません" },
-        404,
+      [userId]
       );
-    }
 
-    await connection.commit();
-    return c.json({ message: "支出明細を更新しました" }, 200);
-  } catch (e:unknown) {
-    await connection.rollback();
-    console.error("[Update Detail Item Error]:", e);
-    return handleRouteError(c, e, "更新に失敗しました");
+    return c.json({
+      message: "履歴データの取得に成功しました",
+      history: rows,
+      totalCount: totalCount,
+      totalPages: Math.ceil(totalCount / limit)
+    }, 200);
+
+  } catch (e: unknown) {
+    console.error("[History Data Error]:", e);
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません" }, 503);
+    }
+    return c.json({ message: "履歴の取得に失敗しました"}, 500);
   }
 });
 

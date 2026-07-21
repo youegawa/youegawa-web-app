@@ -5,8 +5,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ExpenseInput from "./pages/ExpenseInput";
+import ExpenseHistory from "./pages/ExpenseHistory";
 
 const App = () => {
+
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -34,6 +36,16 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ExpenseInput />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* --- ログインしている場合、支出履歴画面、ログインしていない場合、ログイン画面 --- */}
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <ExpenseHistory />
               </ProtectedRoute>
             }
           />
