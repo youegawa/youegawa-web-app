@@ -21,7 +21,6 @@ const Dashboard = () => {
   };
 
   const handleSaveBudget = async () => {
-    //
     if (!user) return;
 
     const budgetToSave = tempBudget === "" ? 0 : tempBudget;
@@ -138,16 +137,14 @@ const Dashboard = () => {
                   key={index}
                   className="flex justify-between text-sm border-b pb-1 border-gray-100"
                 >
-                  <span className="w-28 text-gray-500 text-xs">
+                  <span className="w-24 text-gray-500">
                     {item.expense_date}
                   </span>
-                  <span className="w-36 text-gray-800">
-                    {item.category_name}
-                  </span>
-                  <span className="flex-1 px-4 pr-6 text-gray-600 truncate text-right">
+                  <span className="w-24 font-bold">{item.category_name}</span>
+                  <span className="flex-1 px-4 text-gray-600 truncate">
                     {item.description}
                   </span>
-                  <span className="w-32 text-right font-mono">
+                  <span className="w-24 text-right font-mono">
                     {item.amount.toLocaleString()}円
                   </span>
                 </li>
@@ -194,11 +191,9 @@ const Dashboard = () => {
                 className={modalBtnClass}
                 onClick={() => setIsModalOpen(false)}
               >
-                {" "}
                 キャンセル
               </button>
               <button className={modalBtnClass} onClick={handleSaveBudget}>
-                {" "}
                 保存
               </button>
             </div>

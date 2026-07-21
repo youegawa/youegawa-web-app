@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import todos from "./routes/todos.js";
-import auth from "./routes/auth.js";
+import auth from  "./routes/auth.js";
 import details from "./routes/details.js";
 
 const app = new Hono();

@@ -21,15 +21,7 @@ details.post("/", async (c) => {
       return c.json({ message: "必須項目が不足しています" }, 400);
     }
 
-    if (!user_id ||
-        !expense_date ||
-        !category_name) {
-      return c.json({ message: "必須項目が不足しています" }, 400);
-    }
-
-    if (amount === undefined ||
-        amount === null ||
-        amount <= 0) {
+    if (amount <= 0) {
       return c.json({ message: "金額は１以上で入力してください" }, 400);
     }
 

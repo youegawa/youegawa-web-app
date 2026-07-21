@@ -13,19 +13,11 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    //
-    return localStorage.getItem("user") !== null;
-  });
-  // 本番用
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = () => setIsAuthenticated(true);
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setIsAuthenticated(false);
-  };
+  const logout = () => setIsAuthenticated(false);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout }}>

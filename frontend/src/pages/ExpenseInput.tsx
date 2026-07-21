@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FormButton from "../Common/FormButton";
 import { useNavigate } from "react-router-dom";
@@ -90,7 +90,7 @@ const ExpenseInput = () => {
   };
 
   return (
-    <div className="pl-10 pt-10 pb-20 max-w-4xl relative">
+   <div className="pl-10 pt-10 pb-20 max-w-4xl relative">
       {/* ヘッダー */}
       <div className="absolute top-10 right-10 text-right">
         <p className="text-sm mb-2">名前：{user?.user_name} 様</p>
