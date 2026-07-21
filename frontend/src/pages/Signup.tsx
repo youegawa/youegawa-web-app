@@ -32,12 +32,7 @@ const Signup = () => {
   const onSubmit = async (data: SignupFormValues) => {
     setApiError("");
     try {
-      const response = await signup(
-        data.userName,
-        data.userPassword,
-        data.userEmail,
-        data.budget,
-      );
+      const response = await signup(data.userName, data.userPassword, data.userEmail, data.budget);
       if (response.user) {
         localStorage.setItem("user", JSON.stringify(response.user));
         login();
@@ -56,10 +51,8 @@ const Signup = () => {
 
   // スタイル定義
   const labelClass = "w-32 text-gray-700";
-  const inputBase =
-    "border-2 py-1 px-3 rounded-md focus:ring-2 focus:ring-blue-500 outline-none w-72 text-sm text-right";
-  const btnClass =
-    "bg-blue-500 text-black py-2 px-6 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
+  const inputBase = "border-2 py-1 px-3 rounded-md focus:ring-2 focus:ring-blue-500 outline-none w-72 text-sm text-right";
+  const btnClass = "bg-blue-500 text-black py-2 px-6 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
 
   return (
     <div className="pl-10 pt-10 max-w-2xl">
@@ -80,11 +73,7 @@ const Signup = () => {
             />
           </div>
           <div className="h-4 ml-32">
-            {errors.userName && (
-              <span className="text-red-500 text-xs">
-                {errors.userName.message}
-              </span>
-            )}
+            {errors.userName && <span className="text-red-500 text-xs">{errors.userName.message}</span>}
           </div>
         </div>
 
@@ -98,23 +87,16 @@ const Signup = () => {
               {...register("userPassword", {
                 required: "パスワードは必須です",
                 minLength: { value: 8, message: "8文字以上で入力してください" },
-                maxLength: {
-                  value: 19,
-                  message: "20文字未満で入力してください",
-                },
+                maxLength: { value: 19, message: "20文字未満で入力してください" },
                 pattern: {
                   value: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^\w\s]).+$/,
-                  message: "英字・数字・記号をすべて含めてください",
+                  message: "英字・数字・記号をすべて含めてください"
                 },
               })}
             />
           </div>
           <div className="h-4 ml-32">
-            {errors.userPassword && (
-              <span className="text-red-500 text-xs">
-                {errors.userPassword.message}
-              </span>
-            )}
+            {errors.userPassword && <span className="text-red-500 text-xs">{errors.userPassword.message}</span>}
           </div>
         </div>
 
@@ -129,17 +111,12 @@ const Signup = () => {
                 required: "メールアドレスは必須です",
                 pattern: {
                   value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                  message: "メールアドレスの形式が正しくありません",
-                },
+                  message: "メールアドレスの形式が正しくありません"}
               })}
             />
           </div>
           <div className="h-4 ml-32">
-            {errors.userEmail && (
-              <span className="text-red-500 text-xs">
-                {errors.userEmail.message}
-              </span>
-            )}
+            {errors.userEmail && <span className="text-red-500 text-xs">{errors.userEmail.message}</span>}
           </div>
         </div>
 
@@ -171,12 +148,7 @@ const Signup = () => {
         </div>
 
         <div className="ml-32 w-72 flex justify-center space-x-4 mt-8">
-          <FormButton
-            type="button"
-            label="キャンセル"
-            className={btnClass}
-            onClick={handleGoToLogin}
-          />
+          <FormButton type="button" label="キャンセル" className={btnClass} onClick={handleGoToLogin} />
           <FormButton type="submit" label="確定" className={btnClass} />
         </div>
       </form>
