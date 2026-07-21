@@ -1,4 +1,4 @@
-// 再作成用のコード例
+// 再作成用のコード
 type Props = {
   type?: "button" | "submit" | "reset";
   label: string;
