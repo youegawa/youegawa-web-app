@@ -40,8 +40,16 @@ const ExpenseEdit = () => {
 
     const fetchDetail = async () => {
       if (!detail_id) return;
+
+      const numberDetailId = Number(detail_id);
+      if (isNaN(numberDetailId)) {
+        alert("無効な明細IDです");
+        navigate("/history");
+        return;
+      }
+
       try {
-        const data = await getDetailItem(detail_id);
+        const data = await getDetailItem(numberDetailId);
 
         reset({
           expense_date: data.expense_date,
@@ -50,13 +58,13 @@ const ExpenseEdit = () => {
           description: data.description || "",
         });
       } catch (error) {
-        // alert("データの取得に失敗しました");
-        // navigate("/history");
-        console.log("テスト中");
+        console.error("明細データの取得に失敗しました:", error);
+        alert("明細データの取得に失敗しました");
+        navigate("/history");
       }
     };
     fetchDetail();
-  }, [detail_id, reset]);
+  }, [detail_id, reset, navigate]);
 
   // スタイル定義
   const labelClass = "w-32 text-gray-700";
@@ -84,7 +92,7 @@ const ExpenseEdit = () => {
         description: data.description.trim() || "",
       };
 
-      await updateDetailItem(detail_id, requestData);
+      await updateDetailItem(Number(detail_id), requestData);
       alert("更新完了");
       navigate("/history");
     } catch (error) {

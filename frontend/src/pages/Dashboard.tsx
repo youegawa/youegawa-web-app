@@ -12,7 +12,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [apiError, setApiError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tempBudget, setTempBudget] = useState<number | "">(0);
+  const [tempBudget, setTempBudget] = useState<number>(0);
 
   // 編集ボタン押下
   const handleEditOpen = () => {
@@ -23,12 +23,10 @@ const Dashboard = () => {
   const handleSaveBudget = async () => {
     if (!user) return;
 
-    const budgetToSave = tempBudget === "" ? 0 : tempBudget;
-
     try {
-      await updateMonthlyBudget(user.user_id, budgetToSave);
+      await updateMonthlyBudget(user.user_id, tempBudget);
 
-      const updatedUser = { ...user, monthly_budget: budgetToSave };
+      const updatedUser = { ...user, monthly_budget: tempBudget };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
@@ -179,11 +177,11 @@ const Dashboard = () => {
             <input
               type="number"
               className="w-full border border-gray-300 p-2 rounded mb-6 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={tempBudget}
+              // 0 の時は空欄にする
+              value={tempBudget === 0 ? "" : tempBudget}
               onFocus={(e) => e.target.select()}
               onChange={(e) => {
-                const val = e.target.value;
-                setTempBudget(val === "" ? "" : Number(val));
+                setTempBudget(Number(e.target.value));
               }}
             />
             <div className="flex justify-end space-x-3">

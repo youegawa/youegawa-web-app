@@ -108,7 +108,7 @@ export const getAllHistory = async (
 
 // 特定明細を取得（支出編集画面）
 export const getDetailItem = async (
-  detail_id: string | number,
+  detail_id: number,
 ): Promise<HistoryItem> => {
   const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
     method: "GET",
@@ -124,7 +124,7 @@ export const getDetailItem = async (
 
 // 支出編集画面での明細保存
 export const updateDetailItem = async (
-  detail_id: string | number,
+  detail_id: number,
   data: CreateDetailRequest,
 ): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
@@ -145,8 +145,7 @@ export const deleteDetailItem = async (
   detail_id: number,
   user_id: number,
 ): Promise<{ message: string }> => {
-  // const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
-  const res = await fetch(`/api/details/item/${detail_id}`, {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id }),
