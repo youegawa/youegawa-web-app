@@ -295,6 +295,8 @@ details.put("/item/:detail_id", async (c) => {
       return c.json({ message: "データベースに接続できません" }, 503);
     }
     return c.json({ message: "更新に失敗しました" }, 500);
+  } finally {
+    connection.release();
   }
 });
 
