@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ExpenseInput from "./pages/ExpenseInput";
+import ExpenseHistory from "./pages/ExpenseHistory";
+import ExpenseEdit from "./pages/ExpenseEdit";
 
 const App = () => {
   return (
@@ -34,6 +36,26 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ExpenseInput />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* --- ログインしている場合、支出履歴画面、ログインしていない場合、ログイン画面 --- */}
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <ExpenseHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* --- ログインしている場合、支出編集画面、ログインしていない場合、ログイン画面 --- */}
+          <Route
+            path="/edit/:detail_id"
+            element={
+              <ProtectedRoute>
+                <ExpenseEdit />
               </ProtectedRoute>
             }
           />

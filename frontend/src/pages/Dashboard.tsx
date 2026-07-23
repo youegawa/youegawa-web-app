@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getDashboardData, DashboardDataResponse } from "../api/details";
 import { User } from "../types/auth";
 import FormButton from "../Common/FormButton";
+import { updateMonthlyBudget } from "../api/details";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -10,6 +11,32 @@ const Dashboard = () => {
   const [data, setData] = useState<DashboardDataResponse | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [apiError, setApiError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tempBudget, setTempBudget] = useState<number>(0);
+
+  // 編集ボタン押下
+  const handleEditOpen = () => {
+    setTempBudget(budget);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveBudget = async () => {
+    if (!user) return;
+
+    try {
+      await updateMonthlyBudget(user.user_id, tempBudget);
+
+      const updatedUser = { ...user, monthly_budget: tempBudget };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      setApiError("");
+    } catch (error) {
+      setApiError("予算の更新に失敗しました");
+    } finally {
+      setIsModalOpen(false);
+    }
+  };
 
   // 画面起動時にデータを取得
   useEffect(() => {
@@ -44,8 +71,12 @@ const Dashboard = () => {
   const balance = budget - expense;
 
   // スタイル定義
-  const btnClass = "bg-blue-500 text-white py-2 px-4 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
-  const editBtnClass = "ml-4 bg-blue-500 text-white py-1 px-3 rounded text-xs font-bold hover:bg-blue-600 transition-all shadow-sm";
+  const btnClass =
+    "bg-blue-500 text-white py-2 px-4 rounded-md font-bold text-sm hover:bg-blue-600 transition-all shadow";
+  const editBtnClass =
+    "ml-4 bg-blue-500 text-white py-1 px-3 rounded text-xs font-bold hover:bg-blue-600 transition-all shadow-sm";
+  const modalBtnClass =
+    "bg-blue-500 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm";
   const rowLabel = "w-32 text-gray-700 font-bold";
   const rowValue = "w-32 text-right font-mono";
 
@@ -70,20 +101,24 @@ const Dashboard = () => {
       <div className="space-y-4 mb-12 border-b pb-8">
         <div className="flex items-center">
           <span className={rowLabel}>今月の予算</span>
-          <span className={`${rowValue} text-red-500`}>{budget.toLocaleString()}円</span>
+          <span className={`${rowValue} text-red-500`}>
+            {budget.toLocaleString()}円
+          </span>
           <FormButton
             label="編集"
             className={editBtnClass}
-            onClick={() => navigate("/update-budget")}
+            onClick={handleEditOpen}
           />
         </div>
         <div className="flex items-center">
           <span className={rowLabel}>今月の支出</span>
-          <span className={rowValue}>{expense.toLocaleString()}円</span>
+          <span className={rowValue}>{Number(expense).toLocaleString()}円</span>
         </div>
         <div className="flex items-center">
           <span className={rowLabel}>残高</span>
-          <span className={`${rowValue} ${balance < 0 ? 'text-red-500' : 'text-gray-800'}`}>
+          <span
+            className={`${rowValue} ${balance < 0 ? "text-red-500" : "text-gray-800"}`}
+          >
             {balance.toLocaleString()}円
           </span>
         </div>
@@ -96,16 +131,27 @@ const Dashboard = () => {
           {data?.recentHistory && data.recentHistory.length > 0 ? (
             <ul className="space-y-2">
               {data.recentHistory.map((item, index) => (
-                <li key={index} className="flex justify-between text-sm border-b pb-1 border-gray-100">
-                  <span className="w-24 text-gray-500">{item.expense_date}</span>
+                <li
+                  key={index}
+                  className="flex justify-between text-sm border-b pb-1 border-gray-100"
+                >
+                  <span className="w-24 text-gray-500">
+                    {item.expense_date}
+                  </span>
                   <span className="w-24 font-bold">{item.category_name}</span>
-                  <span className="flex-1 px-4 text-gray-600 truncate">{item.description}</span>
-                  <span className="w-24 text-right font-mono">{item.amount.toLocaleString()}円</span>
+                  <span className="flex-1 px-4 text-gray-600 truncate">
+                    {item.description}
+                  </span>
+                  <span className="w-24 text-right font-mono">
+                    {item.amount.toLocaleString()}円
+                  </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-400 mt-10">明細がありません。</p>
+            <p className="text-center text-gray-400 mt-10">
+              明細がありません。
+            </p>
           )}
         </div>
       </div>
@@ -123,6 +169,35 @@ const Dashboard = () => {
           onClick={() => navigate("/history")}
         />
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg w-80">
+            <h3 className="text-lg font-bold mb-4">今月の予算を編集</h3>
+            <input
+              type="number"
+              className="w-full border border-gray-300 p-2 rounded mb-6 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+              // 0 の時は空欄にする
+              value={tempBudget === 0 ? "" : tempBudget}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => {
+                setTempBudget(Number(e.target.value));
+              }}
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                className={modalBtnClass}
+                onClick={() => setIsModalOpen(false)}
+              >
+                キャンセル
+              </button>
+              <button className={modalBtnClass} onClick={handleSaveBudget}>
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
