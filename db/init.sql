@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS details (
 -- users テーブル
 INSERT INTO users (user_name, user_password, user_email, monthly_budget) VALUES
   ('鈴木太郎', 'Pass1234', 'abcd1234@gmail.com', 100000);
+  ('E2Eテストユーザー', 'Test1234!', 'e2e@test.com', 12345);
 
 -- categories テーブル
 INSERT INTO categories (category_name, user_id) VALUES
