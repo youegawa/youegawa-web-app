@@ -200,4 +200,130 @@ details.get("/history/:user_id", async (c) => {
   }
 });
 
+// GET /api/details/item/:detail_id 支出編集画面での指定した明細
+details.get("/item/:detail_id", async (c) => {
+  try {
+    const detailId = c.req.param("detail_id");
+
+    const [rows] = await pool.query<mysql.RowDataPacket[]>(
+      `SELECT
+        d.detail_id,
+        DATE_FORMAT(d.expense_date, '%Y-%m-%d') AS expense_date,
+        c.category_name,
+        d.amount,
+        d.description
+      FROM details d
+      JOIN categories c ON d.category_id = c.category_id
+      WHERE d.detail_id = ?`,
+      [detailId],
+    );
+
+    if (rows.length === 0) {
+      return c.json({ message: "データが見つかりません" }, 404);
+    }
+
+    return c.json(rows[0], 200);
+  } catch (e: unknown) {
+    console.error("[Get Detail Item Error]:", e);
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "データの取得に失敗しました。" }, 500);
+  }
+});
+
+// PUT /api/details/item/:detail_id - 支出明細の更新
+details.put("/item/:detail_id", async (c) => {
+  const detailId = c.req.param("detail_id");
+  const body = await c.req.json();
+  const { user_id, expense_date, category_name, amount, description } = body;
+
+  if (!expense_date || !category_name) {
+    return c.json({ message: "必須項目が不足しています" }, 400);
+  }
+  if (!amount || amount <= 0) {
+    return c.json({ message: "金額は1以上で入力してください" }, 400);
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // カテゴリを検索
+    const [categories] = await connection.query<mysql.RowDataPacket[]>(
+      "SELECT category_id FROM categories WHERE category_name = ? AND (user_id = ? OR user_id IS NULL) ORDER BY (user_id IS NULL) ASC LIMIT 1",
+      [category_name, user_id],
+    );
+
+    let categoryId: number;
+
+    if (categories.length > 0) {
+      categoryId = categories[0].category_id;
+    } else {
+      // カテゴリが見つからなかった場合、追加
+      const [result] = await connection.query<mysql.ResultSetHeader>(
+        "INSERT INTO categories (category_name, user_id) VALUES (?, ?)",
+        [category_name, user_id],
+      );
+      categoryId = result.insertId;
+    }
+
+    // details テーブルの更新
+    const [result] = await connection.query<mysql.ResultSetHeader>(
+      `UPDATE details
+       SET category_id = ?, expense_date = ?, amount = ?, description = ?
+       WHERE detail_id = ? AND user_id = ?`,
+      [categoryId, expense_date, amount, description ?? "", detailId, user_id],
+    );
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return c.json(
+        { message: "更新対象が見つからないか、権限がありません" },
+        404,
+      );
+    }
+
+    await connection.commit();
+    return c.json({ message: "支出明細を更新しました" }, 200);
+  } catch (e: unknown) {
+    await connection.rollback();
+    console.error("[Update Detail Item Error]:", e);
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません" }, 503);
+    }
+    return c.json({ message: "更新に失敗しました" }, 500);
+  } finally {
+    connection.release();
+  }
+});
+
+// DELETE /api/details/item/:detail_id - 支出明細の削除
+details.delete("/item/:detail_id", async (c) => {
+  try {
+    const detailId = c.req.param("detail_id");
+    const { user_id } = await c.req.json();
+
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      "DELETE FROM details WHERE detail_id = ? AND user_id = ?",
+      [detailId, user_id],
+    );
+
+    if (result.affectedRows === 0) {
+      return c.json({ message: "削除対象が見つかりません" }, 404);
+    }
+
+    return c.json({ message: "明細を削除しました" }, 200);
+  } catch (e: unknown) {
+    console.error("[Delete Detail Item Error]:", e);
+
+    if (isDbError(e) && (e.code === "ECONNREFUSED" || e.code === "PROTOCOL_CONNECTION_LOST")) {
+      return c.json({ message: "データベースに接続できません。" }, 503);
+    }
+    return c.json({ message: "削除に失敗しました。" }, 500);
+  }
+});
+
 export default details;

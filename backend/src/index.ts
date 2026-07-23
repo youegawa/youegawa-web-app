@@ -14,7 +14,7 @@ app.use(
     origin: ["http://localhost:5173"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type"],
-  })
+  }),
 );
 
 // ルーターを登録

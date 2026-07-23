@@ -20,8 +20,8 @@ export interface DashboardDataResponse {
 // 全履歴取得用の型定義
 export type HistoryItem = Omit<Detail, "category_id"> & {
   category_name: string;
-}
-export interface HistoryResponse{
+};
+export interface HistoryResponse {
   message: string;
   history: HistoryItem[];
   totalCount: number;
@@ -104,4 +104,56 @@ export const getAllHistory = async (
     throw new Error(`Failed to fetch history data: ${res.status}`);
   }
   return res.json() as Promise<HistoryResponse>;
+};
+
+// 特定明細を取得（支出編集画面）
+export const getDetailItem = async (
+  detail_id: number,
+): Promise<HistoryItem> => {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch detail item: ${res.status}`);
+  }
+
+  return res.json();
+};
+
+// 支出編集画面での明細保存
+export const updateDetailItem = async (
+  detail_id: number,
+  data: CreateDetailRequest,
+): Promise<{ message: string }> => {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to update detail item: ${res.status}`);
+  }
+
+  return res.json();
+};
+
+// 支出明細の削除
+export const deleteDetailItem = async (
+  detail_id: number,
+  user_id: number,
+): Promise<{ message: string }> => {
+  const res = await fetch(`${BASE_URL}/item/${detail_id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to delete detail item: ${res.status}`);
+  }
+
+  return res.json();
 };

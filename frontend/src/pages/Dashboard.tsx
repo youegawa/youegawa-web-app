@@ -12,7 +12,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [apiError, setApiError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tempBudget, setTempBudget] = useState(0);
+  const [tempBudget, setTempBudget] = useState<number>(0);
 
   // 編集ボタン押下
   const handleEditOpen = () => {
@@ -22,6 +22,7 @@ const Dashboard = () => {
 
   const handleSaveBudget = async () => {
     if (!user) return;
+
     try {
       await updateMonthlyBudget(user.user_id, tempBudget);
 
@@ -111,7 +112,7 @@ const Dashboard = () => {
         </div>
         <div className="flex items-center">
           <span className={rowLabel}>今月の支出</span>
-          <span className={rowValue}>{expense.toLocaleString()}円</span>
+          <span className={rowValue}>{Number(expense).toLocaleString()}円</span>
         </div>
         <div className="flex items-center">
           <span className={rowLabel}>残高</span>
@@ -176,9 +177,12 @@ const Dashboard = () => {
             <input
               type="number"
               className="w-full border border-gray-300 p-2 rounded mb-6 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={tempBudget}
+              // 0 の時は空欄にする
+              value={tempBudget === 0 ? "" : tempBudget}
               onFocus={(e) => e.target.select()}
-              onChange={(e) => setTempBudget(Number(e.target.value))}
+              onChange={(e) => {
+                setTempBudget(Number(e.target.value));
+              }}
             />
             <div className="flex justify-end space-x-3">
               <button
